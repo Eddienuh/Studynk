@@ -12,7 +12,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import LanguageSelector from '../../components/LanguageSelector';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
@@ -120,8 +119,6 @@ export default function ProfileScreen() {
             <Text style={styles.settingsText}>{t('profile.settings.editProfile')}</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
-          
-          <LanguageSelector />
           
           <TouchableOpacity style={styles.settingsItem}>
             <Ionicons name="notifications-outline" size={24} color="#2DAFE3" />

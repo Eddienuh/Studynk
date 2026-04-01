@@ -42,6 +42,14 @@ class User(BaseModel):
     onboarding_completed: bool = False
     matching_status: str = "pending"  # pending, matched, re-matching
     group_id: Optional[str] = None
+    # Subscription & Referral fields
+    subscription_tier: str = "free"  # free, pro
+    pro_expires_at: Optional[datetime] = None
+    referral_code: str = ""
+    referred_by: Optional[str] = None  # user_id of referrer
+    referrals_count: int = 0
+    last_rematch_date: Optional[datetime] = None
+    rematch_count_this_week: int = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserSession(BaseModel):
