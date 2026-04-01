@@ -45,7 +45,7 @@ export default function LandingPage() {
     <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Ionicons name="people" size={80} color="#2E7D32" />
+          <Ionicons name="people" size={80} color="#2DAFE3" />
         </View>
         
         <Text style={styles.title}>StudyMatch</Text>
@@ -72,7 +72,7 @@ export default function LandingPage() {
 function Feature({ icon, text }: { icon: any; text: string }) {
   return (
     <View style={styles.feature}>
-      <Ionicons name={icon} size={24} color="#2E7D32" />
+      <Ionicons name={icon} size={24} color="#2DAFE3" />
       <Text style={styles.featureText}>{text}</Text>
     </View>
   );
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#E0F7FA',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#2DAFE3',
     marginBottom: 8,
   },
   subtitle: {
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     flexDirection: 'row',
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#2DAFE3',
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,

@@ -234,7 +234,7 @@ export default function OnboardingScreen() {
             </ScrollView>
             
             <TouchableOpacity style={styles.addButton} onPress={addTimeSlot}>
-              <Ionicons name="add-circle-outline" size={24} color="#2E7D32" />
+              <Ionicons name="add-circle-outline" size={24} color="#2DAFE3" />
               <Text style={styles.addButtonText}>Add Time Slot</Text>
             </TouchableOpacity>
           </View>
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#2DAFE3',
     marginBottom: 16,
   },
   progressBar: {
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   progressDotActive: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#2DAFE3',
   },
   stepContent: {
     marginBottom: 24,
@@ -374,8 +374,8 @@ const styles = StyleSheet.create({
     borderColor: '#DDD',
   },
   optionButtonSelected: {
-    backgroundColor: '#2E7D32',
-    borderColor: '#2E7D32',
+    backgroundColor: '#2DAFE3',
+    borderColor: '#2DAFE3',
   },
   optionText: {
     fontSize: 14,
@@ -413,8 +413,8 @@ const styles = StyleSheet.create({
     borderColor: '#DDD',
   },
   dayButtonSelected: {
-    backgroundColor: '#2E7D32',
-    borderColor: '#2E7D32',
+    backgroundColor: '#2DAFE3',
+    borderColor: '#2DAFE3',
   },
   dayButtonText: {
     fontSize: 12,
@@ -449,13 +449,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#E0F7FA',
     borderRadius: 12,
     marginTop: 8,
   },
   addButtonText: {
     fontSize: 16,
-    color: '#2E7D32',
+    color: '#2DAFE3',
     fontWeight: '600',
     marginLeft: 8,
   },
@@ -471,15 +471,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFF',
     borderWidth: 2,
-    borderColor: '#2E7D32',
+    borderColor: '#2DAFE3',
   },
   navButtonPrimary: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#2DAFE3',
   },
   navButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: '#2DAFE3',
   },
   navButtonTextPrimary: {
     color: '#FFF',

@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#2DAFE3',
   },
   groupName: {
     fontSize: 14,
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   messageBubbleOwn: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#2DAFE3',
     borderBottomRightRadius: 4,
   },
   messageBubbleOther: {
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   messageTimeOwn: {
-    color: '#E8F5E9',
+    color: '#E0F7FA',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#2DAFE3',
     justifyContent: 'center',
     alignItems: 'center',
   },

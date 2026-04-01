@@ -129,7 +129,7 @@ export default function HomeScreen() {
       {group ? (
         <View style={styles.groupCard}>
           <View style={styles.cardHeader}>
-            <Ionicons name="people" size={24} color="#2E7D32" />
+            <Ionicons name="people" size={24} color="#2DAFE3" />
             <Text style={styles.cardTitle}>Your Study Group</Text>
           </View>
           
@@ -168,7 +168,7 @@ export default function HomeScreen() {
         </View>
       ) : (
         <View style={styles.noGroupCard}>
-          <Ionicons name="search" size={48} color="#2E7D32" />
+          <Ionicons name="search" size={48} color="#2DAFE3" />
           <Text style={styles.noGroupTitle}>Find Your Study Group</Text>
           <Text style={styles.noGroupText}>
             Get matched with compatible students in your course
@@ -190,19 +190,19 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsGrid}>
           <TouchableOpacity style={styles.actionCard}>
-            <Ionicons name="calendar" size={32} color="#2E7D32" />
+            <Ionicons name="calendar" size={32} color="#2DAFE3" />
             <Text style={styles.actionText}>Schedule</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionCard}>
-            <Ionicons name="stats-chart" size={32} color="#2E7D32" />
+            <Ionicons name="stats-chart" size={32} color="#2DAFE3" />
             <Text style={styles.actionText}>Progress</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionCard}>
-            <Ionicons name="location" size={32} color="#2E7D32" />
+            <Ionicons name="location" size={32} color="#2DAFE3" />
             <Text style={styles.actionText}>Study Spots</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionCard}>
-            <Ionicons name="help-circle" size={32} color="#2E7D32" />
+            <Ionicons name="help-circle" size={32} color="#2DAFE3" />
             <Text style={styles.actionText}>Help</Text>
           </TouchableOpacity>
         </View>
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#2DAFE3',
   },
   streakCard: {
     flexDirection: 'row',
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   checkInButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#2DAFE3',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   },
   compatibilityBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#E0F7FA',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 12,
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   compatibilityText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: '#2DAFE3',
   },
   membersList: {
     marginBottom: 16,
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#2DAFE3',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   findButton: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#2DAFE3',
     paddingVertical: 14,
     paddingHorizontal: 32,
     borderRadius: 24,

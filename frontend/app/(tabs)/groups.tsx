@@ -139,7 +139,7 @@ export default function GroupsScreen() {
         <Text style={styles.sectionTitle}>Group Details</Text>
         <View style={styles.detailCard}>
           <View style={styles.detailRow}>
-            <Ionicons name="book" size={20} color="#2E7D32" />
+            <Ionicons name="book" size={20} color="#2DAFE3" />
             <View style={styles.detailContent}>
               <Text style={styles.detailLabel}>Course</Text>
               <Text style={styles.detailValue}>{group.course}</Text>
@@ -147,7 +147,7 @@ export default function GroupsScreen() {
           </View>
           
           <View style={styles.detailRow}>
-            <Ionicons name="location" size={20} color="#2E7D32" />
+            <Ionicons name="location" size={20} color="#2DAFE3" />
             <View style={styles.detailContent}>
               <Text style={styles.detailLabel}>Preferred Location</Text>
               <Text style={styles.detailValue}>{group.suggested_location}</Text>
@@ -155,7 +155,7 @@ export default function GroupsScreen() {
           </View>
           
           <View style={styles.detailRow}>
-            <Ionicons name="calendar" size={20} color="#2E7D32" />
+            <Ionicons name="calendar" size={20} color="#2DAFE3" />
             <View style={styles.detailContent}>
               <Text style={styles.detailLabel}>Created</Text>
               <Text style={styles.detailValue}>
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#2DAFE3',
   },
   emptyState: {
     flex: 1,
@@ -240,20 +240,20 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#E0F7FA',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 4,
-    borderColor: '#2E7D32',
+    borderColor: '#2DAFE3',
   },
   scoreNumber: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#2DAFE3',
   },
   scoreLabel: {
     fontSize: 14,
-    color: '#2E7D32',
+    color: '#2DAFE3',
   },
   compatibilityInfo: {
     flex: 1,
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#2DAFE3',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   youBadge: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#E0F7FA',
     paddingVertical: 4,
     paddingHorizontal: 12,
     borderRadius: 12,
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   youBadgeText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: '#2DAFE3',
   },
   detailCard: {
     backgroundColor: '#FFF',
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
   },
   healthFill: {
     height: '100%',
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#2DAFE3',
   },
   healthText: {
     fontSize: 18,

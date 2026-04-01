@@ -63,7 +63,7 @@ export default function AuthCallback() {
 
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color="#2E7D32" />
+      <ActivityIndicator size="large" color="#2DAFE3" />
       <Text style={styles.text}>Completing sign in...</Text>
     </View>
   );

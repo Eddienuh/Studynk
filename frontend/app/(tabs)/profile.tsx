@@ -57,7 +57,7 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Academic Information</Text>
           <View style={styles.card}>
             <View style={styles.infoRow}>
-              <Ionicons name="school" size={20} color="#2E7D32" />
+              <Ionicons name="school" size={20} color="#2DAFE3" />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>University</Text>
                 <Text style={styles.infoValue}>{user.university}</Text>
@@ -65,7 +65,7 @@ export default function ProfileScreen() {
             </View>
             {user.course && (
               <View style={styles.infoRow}>
-                <Ionicons name="book" size={20} color="#2E7D32" />
+                <Ionicons name="book" size={20} color="#2DAFE3" />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Course</Text>
                   <Text style={styles.infoValue}>{user.course}</Text>
@@ -81,7 +81,7 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Study Preferences</Text>
           <View style={styles.card}>
             <View style={styles.infoRow}>
-              <Ionicons name="bulb" size={20} color="#2E7D32" />
+              <Ionicons name="bulb" size={20} color="#2DAFE3" />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Study Style</Text>
                 <Text style={styles.infoValue}>{user.study_style}</Text>
@@ -89,7 +89,7 @@ export default function ProfileScreen() {
             </View>
             {user.grade_goal && (
               <View style={styles.infoRow}>
-                <Ionicons name="trophy" size={20} color="#2E7D32" />
+                <Ionicons name="trophy" size={20} color="#2DAFE3" />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Grade Goal</Text>
                   <Text style={styles.infoValue}>{user.grade_goal}</Text>
@@ -98,7 +98,7 @@ export default function ProfileScreen() {
             )}
             {user.location_preference && (
               <View style={styles.infoRow}>
-                <Ionicons name="location" size={20} color="#2E7D32" />
+                <Ionicons name="location" size={20} color="#2DAFE3" />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Preferred Location</Text>
                   <Text style={styles.infoValue}>{user.location_preference}</Text>
@@ -113,25 +113,25 @@ export default function ProfileScreen() {
         <Text style={styles.sectionTitle}>Settings</Text>
         <View style={styles.card}>
           <TouchableOpacity style={styles.settingsItem} onPress={handleEditProfile}>
-            <Ionicons name="create-outline" size={24} color="#2E7D32" />
+            <Ionicons name="create-outline" size={24} color="#2DAFE3" />
             <Text style={styles.settingsText}>Edit Profile</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.settingsItem}>
-            <Ionicons name="notifications-outline" size={24} color="#2E7D32" />
+            <Ionicons name="notifications-outline" size={24} color="#2DAFE3" />
             <Text style={styles.settingsText}>Notifications</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.settingsItem}>
-            <Ionicons name="help-circle-outline" size={24} color="#2E7D32" />
+            <Ionicons name="help-circle-outline" size={24} color="#2DAFE3" />
             <Text style={styles.settingsText}>Help & Support</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.settingsItem}>
-            <Ionicons name="information-circle-outline" size={24} color="#2E7D32" />
+            <Ionicons name="information-circle-outline" size={24} color="#2DAFE3" />
             <Text style={styles.settingsText}>About</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
   header: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#2DAFE3',
     padding: 24,
     paddingTop: 48,
     alignItems: 'center',
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 40,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#2DAFE3',
   },
   name: {
     fontSize: 24,
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
   },
   email: {
     fontSize: 14,
-    color: '#E8F5E9',
+    color: '#E0F7FA',
   },
   section: {
     padding: 16,
