@@ -9,11 +9,14 @@ import {
   Alert,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import LanguageSelector from '../../components/LanguageSelector';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
 
   const handleLogout = () => {
@@ -110,29 +113,31 @@ export default function ProfileScreen() {
       )}
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Settings</Text>
+        <Text style={styles.sectionTitle}>{t('profile.settings.title')}</Text>
         <View style={styles.card}>
           <TouchableOpacity style={styles.settingsItem} onPress={handleEditProfile}>
             <Ionicons name="create-outline" size={24} color="#2DAFE3" />
-            <Text style={styles.settingsText}>Edit Profile</Text>
+            <Text style={styles.settingsText}>{t('profile.settings.editProfile')}</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
           
+          <LanguageSelector />
+          
           <TouchableOpacity style={styles.settingsItem}>
             <Ionicons name="notifications-outline" size={24} color="#2DAFE3" />
-            <Text style={styles.settingsText}>Notifications</Text>
+            <Text style={styles.settingsText}>{t('profile.settings.notifications')}</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.settingsItem}>
             <Ionicons name="help-circle-outline" size={24} color="#2DAFE3" />
-            <Text style={styles.settingsText}>Help & Support</Text>
+            <Text style={styles.settingsText}>{t('profile.settings.help')}</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.settingsItem}>
             <Ionicons name="information-circle-outline" size={24} color="#2DAFE3" />
-            <Text style={styles.settingsText}>About</Text>
+            <Text style={styles.settingsText}>{t('profile.settings.about')}</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
         </View>

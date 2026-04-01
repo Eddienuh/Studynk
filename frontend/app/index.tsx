@@ -2,11 +2,13 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function LandingPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!loading && user) {
@@ -36,7 +38,7 @@ export default function LandingPage() {
   if (loading) {
     return (
       <View style={styles.container}>
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingText}>{t('common.loading')}</Text>
       </View>
     );
   }
@@ -49,22 +51,22 @@ export default function LandingPage() {
           style={styles.logo}
         />
         
-        <Text style={styles.title}>StudyMatch</Text>
-        <Text style={styles.subtitle}>Find your perfect study group</Text>
+        <Text style={styles.title}>{t('landing.title')}</Text>
+        <Text style={styles.subtitle}>{t('landing.subtitle')}</Text>
         
         <View style={styles.features}>
-          <Feature icon="checkmark-circle" text="AI-powered matching" />
-          <Feature icon="calendar" text="Schedule coordination" />
-          <Feature icon="trending-up" text="Track your progress" />
-          <Feature icon="location" text="Find study spots" />
+          <Feature icon="checkmark-circle" text={t('landing.features.aiMatching')} />
+          <Feature icon="calendar" text={t('landing.features.scheduleCoordination')} />
+          <Feature icon="trending-up" text={t('landing.features.trackProgress')} />
+          <Feature icon="location" text={t('landing.features.findSpots')} />
         </View>
 
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Ionicons name="logo-google" size={24} color="#fff" style={styles.googleIcon} />
-          <Text style={styles.loginButtonText}>Sign in with Google</Text>
+          <Text style={styles.loginButtonText}>{t('landing.signInButton')}</Text>
         </TouchableOpacity>
         
-        <Text style={styles.note}>University email (.ac.uk) required</Text>
+        <Text style={styles.note}>{t('landing.emailRequired')}</Text>
       </View>
     </View>
   );
