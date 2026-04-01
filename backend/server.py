@@ -238,6 +238,262 @@ async def logout(request: Request, response: Response):
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out successfully"}
 
+# ==================== SUBSCRIPTION HELPER FUNCTIONS ====================
+
+def generate_referral_code(user_id: str) -> str:
+    """Generate unique referral code for user"""
+    return f"SM{user_id[-6:].upper()}{uuid.uuid4().hex[:4].upper()}"
+
+async def check_pro_status(user: Dict[str, Any]) -> bool:
+    """Check if user has active Pro subscription"""
+    if user.get("subscription_tier") != "pro":
+        return False
+    
+    pro_expires_at = user.get("pro_expires_at")
+    if not pro_expires_at:
+        return False
+    
+    if isinstance(pro_expires_at, str):
+        pro_expires_at = datetime.fromisoformat(pro_expires_at)
+    if pro_expires_at.tzinfo is None:
+        pro_expires_at = pro_expires_at.replace(tzinfo=timezone.utc)
+    
+    # Check if expired
+    if pro_expires_at < datetime.now(timezone.utc):
+        # Downgrade to free
+        await db.users.update_one(
+            {"user_id": user["user_id"]},
+            {"$set": {"subscription_tier": "free", "pro_expires_at": None}}
+        )
+        return False
+    
+    return True
+
+async def grant_pro_access(user_id: str, duration_days: int, reason: str = "referral"):
+    """Grant Pro access to a user for specified duration"""
+    expires_at = datetime.now(timezone.utc) + timedelta(days=duration_days)
+    
+    await db.users.update_one(
+        {"user_id": user_id},
+        {"$set": {
+            "subscription_tier": "pro",
+            "pro_expires_at": expires_at
+        }}
+    )
+    
+    # Log the grant
+    await db.subscription_log.insert_one({
+        "user_id": user_id,
+        "action": "pro_granted",
+        "reason": reason,
+        "duration_days": duration_days,
+        "expires_at": expires_at,
+        "timestamp": datetime.now(timezone.utc)
+    })
+
+async def check_rematch_limit(user: Dict[str, Any]) -> bool:
+    """Check if user can rematch (free tier: 1/week, pro: unlimited)"""
+    is_pro = await check_pro_status(user)
+    if is_pro:
+        return True  # Unlimited for Pro
+    
+    # Check weekly limit for free users
+    last_rematch = user.get("last_rematch_date")
+    if not last_rematch:
+        return True  # First rematch
+    
+    if isinstance(last_rematch, str):
+        last_rematch = datetime.fromisoformat(last_rematch)
+    if last_rematch.tzinfo is None:
+        last_rematch = last_rematch.replace(tzinfo=timezone.utc)
+    
+    # Check if it's been a week
+    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    if last_rematch < week_ago:
+        # Reset counter
+        await db.users.update_one(
+            {"user_id": user["user_id"]},
+            {"$set": {"rematch_count_this_week": 0}}
+        )
+        return True
+    
+    # Check count
+    rematch_count = user.get("rematch_count_this_week", 0)
+    return rematch_count < 1  # Free tier: 1 per week
+
+# ==================== SUBSCRIPTION & REFERRAL ROUTES ====================
+
+@api_router.get("/subscription/status")
+async def get_subscription_status(request: Request):
+    """Get current user's subscription status"""
+    user = await get_current_user(request)
+    is_pro = await check_pro_status(user)
+    
+    # Refresh user data
+    user = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    
+    return {
+        "tier": user.get("subscription_tier", "free"),
+        "is_pro": is_pro,
+        "pro_expires_at": user.get("pro_expires_at"),
+        "referral_code": user.get("referral_code"),
+        "referrals_count": user.get("referrals_count", 0),
+        "can_rematch": await check_rematch_limit(user)
+    }
+
+@api_router.post("/subscription/generate-referral")
+async def generate_referral(request: Request):
+    """Generate referral code for user if they don't have one"""
+    user = await get_current_user(request)
+    
+    if user.get("referral_code"):
+        return {"referral_code": user["referral_code"]}
+    
+    # Generate new code
+    referral_code = generate_referral_code(user["user_id"])
+    
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"referral_code": referral_code}}
+    )
+    
+    return {"referral_code": referral_code}
+
+@api_router.post("/subscription/apply-referral")
+async def apply_referral(request: Request, referral_data: Dict[str, Any]):
+    """Apply a referral code (only for new users during onboarding)"""
+    user = await get_current_user(request)
+    referral_code = referral_data.get("referral_code", "").strip().upper()
+    
+    if not referral_code:
+        raise HTTPException(status_code=400, detail="Referral code required")
+    
+    # Check if user already used a referral
+    if user.get("referred_by"):
+        raise HTTPException(status_code=400, detail="You've already used a referral code")
+    
+    # Find referrer
+    referrer = await db.users.find_one(
+        {"referral_code": referral_code},
+        {"_id": 0}
+    )
+    
+    if not referrer:
+        raise HTTPException(status_code=404, detail="Invalid referral code")
+    
+    if referrer["user_id"] == user["user_id"]:
+        raise HTTPException(status_code=400, detail="Cannot use your own referral code")
+    
+    # Update current user
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"referred_by": referrer["user_id"]}}
+    )
+    
+    # Increment referrer's count
+    new_count = referrer.get("referrals_count", 0) + 1
+    await db.users.update_one(
+        {"user_id": referrer["user_id"]},
+        {"$set": {"referrals_count": new_count}}
+    )
+    
+    # Check if referrer unlocked Pro (2-3 referrals = 1 month Pro)
+    if new_count >= 2 and new_count <= 3:
+        # Check if this referral unlocks Pro
+        is_already_pro = await check_pro_status(referrer)
+        if not is_already_pro:
+            await grant_pro_access(referrer["user_id"], 30, "referral_reward")
+    
+    return {
+        "message": "Referral code applied successfully!",
+        "referrer_name": referrer.get("name"),
+        "referrals_count": new_count
+    }
+
+@api_router.post("/subscription/upgrade-to-pro")
+async def upgrade_to_pro(request: Request, subscription_data: Dict[str, Any]):
+    """Upgrade user to Pro (payment would be handled by Stripe in production)"""
+    user = await get_current_user(request)
+    duration_type = subscription_data.get("duration_type", "monthly")  # monthly or semester
+    
+    # In production, this would integrate with Stripe
+    # For MVP, we'll just simulate the upgrade
+    
+    if duration_type == "semester":
+        duration_days = 120  # ~4 months
+        price = 9.99
+    else:
+        duration_days = 30
+        price = 2.99
+    
+    # Grant Pro access
+    await grant_pro_access(user["user_id"], duration_days, "purchase")
+    
+    return {
+        "message": "Upgraded to Pro successfully!",
+        "tier": "pro",
+        "duration_days": duration_days,
+        "price": price,
+        "expires_at": datetime.now(timezone.utc) + timedelta(days=duration_days)
+    }
+
+@api_router.post("/subscription/check-group-referral-bonus")
+async def check_group_referral_bonus(request: Request):
+    """Check if user's group qualifies for group referral bonus"""
+    user = await get_current_user(request)
+    
+    if not user.get("group_id"):
+        return {"eligible": False, "message": "Not in a group"}
+    
+    # Get group
+    group = await db.groups.find_one({"group_id": user["group_id"]}, {"_id": 0})
+    if not group:
+        return {"eligible": False, "message": "Group not found"}
+    
+    # Get all members
+    members = await db.users.find(
+        {"user_id": {"$in": group["members"]}},
+        {"_id": 0}
+    ).to_list(10)
+    
+    # Check if all members were referred
+    all_referred = all(m.get("referred_by") for m in members)
+    
+    if all_referred and len(members) >= 2:
+        # Grant Pro to all members if not already granted for this group
+        group_bonus_granted = group.get("referral_bonus_granted", False)
+        
+        if not group_bonus_granted:
+            # Grant 14 days Pro to all members
+            for member in members:
+                is_pro = await check_pro_status(member)
+                if not is_pro:
+                    await grant_pro_access(member["user_id"], 14, "group_referral_bonus")
+            
+            # Mark as granted
+            await db.groups.update_one(
+                {"group_id": group["group_id"]},
+                {"$set": {"referral_bonus_granted": True}}
+            )
+            
+            return {
+                "eligible": True,
+                "granted": True,
+                "message": "Group referral bonus activated! All members get 14 days Pro free!",
+                "duration_days": 14
+            }
+        else:
+            return {
+                "eligible": True,
+                "granted": False,
+                "message": "Group bonus already claimed"
+            }
+    
+    return {
+        "eligible": False,
+        "message": f"Not all members were referred ({sum(1 for m in members if m.get('referred_by'))}/{len(members)})"
+    }
+
 # ==================== USER PROFILE ROUTES ====================
 
 @api_router.put("/users/profile")

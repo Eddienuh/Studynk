@@ -13,7 +13,7 @@ const i18n = new I18n({
 });
 
 // Set the locale once at the beginning of your app
-i18n.locale = Localization.locale;
+i18n.locale = Localization.locale || 'en';
 
 // Enable fallback to English
 i18n.enableFallback = true;
