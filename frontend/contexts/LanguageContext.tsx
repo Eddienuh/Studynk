@@ -15,6 +15,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     loadLanguagePreference().then(() => {
       setCurrentLanguage(i18n.locale.split('-')[0]);
+    }).catch(error => {
+      console.log('Error in language provider:', error);
+      setCurrentLanguage('en');
     });
   }, []);
 

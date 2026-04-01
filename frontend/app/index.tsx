@@ -21,18 +21,14 @@ export default function LandingPage() {
   }, [user, loading]);
 
   const handleLogin = () => {
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
     const redirectUrl = typeof window !== 'undefined' 
       ? `${window.location.origin}/auth-callback`
       : 'http://localhost:3000/auth-callback';
     
     const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
     
-    if (typeof window !== 'undefined') {
-      window.location.href = authUrl;
-    } else {
-      Linking.openURL(authUrl);
-    }
+    // Use Linking API for cross-platform compatibility
+    Linking.openURL(authUrl);
   };
 
   if (loading) {
