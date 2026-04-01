@@ -44,9 +44,10 @@ export default function LandingPage() {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <View style={styles.iconContainer}>
-          <Ionicons name="people" size={80} color="#2DAFE3" />
-        </View>
+        <Image 
+          source={require('../assets/logo.png')} 
+          style={styles.logo}
+        />
         
         <Text style={styles.title}>StudyMatch</Text>
         <Text style={styles.subtitle}>Find your perfect study group</Text>
@@ -89,14 +90,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
   },
-  iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#E0F7FA',
-    justifyContent: 'center',
-    alignItems: 'center',
+  logo: {
+    width: 200,
+    height: 200,
     marginBottom: 24,
+    borderRadius: 40,
   },
   title: {
     fontSize: 36,
