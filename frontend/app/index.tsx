@@ -11,6 +11,11 @@ export default function LandingPage() {
   const { t } = useLanguage();
 
   useEffect(() => {
+    // Skip redirect if we're returning from OAuth callback
+    if (typeof window !== 'undefined' && window.location?.hash?.includes('session_id=')) {
+      return;
+    }
+
     if (!loading && user) {
       if (!user.onboarding_completed) {
         router.replace('/onboarding');
@@ -18,7 +23,7 @@ export default function LandingPage() {
         router.replace('/(tabs)');
       }
     }
-  }, [user, loading]);
+  }, [user, loading, router]);
 
   const handleLogin = () => {
     const redirectUrl = typeof window !== 'undefined' 

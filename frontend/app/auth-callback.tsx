@@ -46,12 +46,20 @@ export default function AuthCallback() {
         const data = await response.json();
         await login(data.user);
 
-        // Redirect based on onboarding status
-        if (data.user.onboarding_completed) {
-          router.replace('/(tabs)');
-        } else {
-          router.replace('/onboarding');
+        // Clear the hash from URL
+        if (typeof window !== 'undefined') {
+          window.history.replaceState(null, '', window.location.pathname);
         }
+
+        // Small delay to ensure state is updated
+        setTimeout(() => {
+          // Redirect based on onboarding status
+          if (data.user.onboarding_completed) {
+            router.replace('/(tabs)');
+          } else {
+            router.replace('/onboarding');
+          }
+        }, 100);
       } catch (error) {
         console.error('Session processing error:', error);
         router.replace('/');
