@@ -70,7 +70,7 @@ export default function LandingPage() {
           <Text style={styles.loginButtonText}>{t('landing.signInButton')}</Text>
         </TouchableOpacity>
         
-        <Text style={styles.note}>{t('landing.emailRequired')}</Text>
+        <Text style={styles.note}>Free to join • No credit card required</Text>
       </View>
     </View>
   );

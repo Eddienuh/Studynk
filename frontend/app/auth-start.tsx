@@ -30,10 +30,9 @@ export default function AuthStartScreen() {
           <Text style={styles.googleButtonText}>Continue with Google</Text>
         </TouchableOpacity>
         
-        <View style={styles.badge}>
-          <Ionicons name="shield-checkmark" size={16} color="#2DAFE3" />
-          <Text style={styles.badgeText}>University email (.ac.uk) required</Text>
-        </View>
+        <Text style={styles.helpText}>
+          Sign in to create your profile and find study groups
+        </Text>
 
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={20} color="#666" />
@@ -116,6 +115,12 @@ const styles = StyleSheet.create({
     color: '#2DAFE3',
     marginLeft: 6,
     fontWeight: '500',
+  },
+  helpText: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 16,
   },
   backButton: {
     flexDirection: 'row',
