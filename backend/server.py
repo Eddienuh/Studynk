@@ -157,12 +157,14 @@ async def create_session(request: Request, response: Response):
         raise HTTPException(status_code=400, detail=f"Failed to verify session: {str(e)}")
     
     # Verify university email (.ac.uk domain)
+    # TODO: Re-enable for production launch
     email = auth_data.get("email", "")
-    if not email.endswith(".ac.uk"):
-        raise HTTPException(
-            status_code=403,
-            detail="Only university emails (.ac.uk) are allowed"
-        )
+    # Temporarily disabled for testing - accept any email
+    # if not email.endswith(".ac.uk"):
+    #     raise HTTPException(
+    #         status_code=403,
+    #         detail="Only university emails (.ac.uk) are allowed"
+    #     )
     
     # Check if user exists
     user_doc = await db.users.find_one({"email": email}, {"_id": 0})
