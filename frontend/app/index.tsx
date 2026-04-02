@@ -22,6 +22,9 @@ export default function LandingPage() {
       } else {
         router.replace('/(tabs)');
       }
+    } else if (!loading && !user) {
+      // Redirect to welcome screen for unauthenticated users
+      router.replace('/welcome');
     }
   }, [user, loading, router]);
 
