@@ -153,7 +153,12 @@ async def create_session(request: Request, response: Response):
         )
         auth_response.raise_for_status()
         auth_data = auth_response.json()
+        logging.info(f"Auth successful for email: {auth_data.get('email')}")
+    except requests.exceptions.HTTPError as e:
+        logging.error(f"Auth API HTTP error: {e.response.status_code} - {e.response.text}")
+        raise HTTPException(status_code=400, detail=f"Failed to verify session: {str(e)}")
     except Exception as e:
+        logging.error(f"Auth API error: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Failed to verify session: {str(e)}")
     
     # Verify university email (.ac.uk domain)
