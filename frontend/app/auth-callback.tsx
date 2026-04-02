@@ -16,18 +16,24 @@ export default function AuthCallback() {
       try {
         // Extract session_id from URL fragment
         const hash = typeof window !== 'undefined' ? window.location.hash : '';
+        console.log('Auth callback hash:', hash);
+        
         const sessionIdMatch = hash.match(/session_id=([^&]+)/);
         
         if (!sessionIdMatch) {
-          console.error('No session_id found');
+          console.error('No session_id found in hash');
+          alert('Authentication failed: No session ID found. Please try again.');
           router.replace('/');
           return;
         }
 
         const sessionId = sessionIdMatch[1];
+        console.log('Session ID extracted:', sessionId.substring(0, 10) + '...');
+        
         const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
         // Exchange session_id for user data
+        console.log('Calling backend auth session...');
         const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/auth/session`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -35,15 +41,19 @@ export default function AuthCallback() {
           body: JSON.stringify({ session_id: sessionId }),
         });
 
+        console.log('Backend response status:', response.status);
+
         if (!response.ok) {
           const error = await response.json();
           console.error('Auth error:', error);
-          alert(error.detail || 'Authentication failed');
+          alert(`Authentication failed: ${error.detail || 'Unknown error'}\n\nPlease try again or contact support.`);
           router.replace('/');
           return;
         }
 
         const data = await response.json();
+        console.log('User data received:', data.user?.email);
+        
         await login(data.user);
 
         // Clear the hash from URL
@@ -51,17 +61,22 @@ export default function AuthCallback() {
           window.history.replaceState(null, '', window.location.pathname);
         }
 
+        console.log('Login successful, redirecting...');
+        
         // Small delay to ensure state is updated
         setTimeout(() => {
           // Redirect based on onboarding status
           if (data.user.onboarding_completed) {
+            console.log('Redirecting to main app');
             router.replace('/(tabs)');
           } else {
+            console.log('Redirecting to onboarding');
             router.replace('/onboarding');
           }
         }, 100);
       } catch (error) {
         console.error('Session processing error:', error);
+        alert('An unexpected error occurred during login. Please try again.');
         router.replace('/');
       }
     };
