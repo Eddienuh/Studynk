@@ -1,457 +1,356 @@
 #!/usr/bin/env python3
 """
-StudyMatch Backend Authentication Testing
-Tests the new email/password authentication system
+StudyMatch Backend API Testing - Study Locations Endpoints
+Testing the new Study Locations endpoints for StudyMatch
 """
 
 import requests
 import json
-import uuid
+import sys
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://study-sync-44.preview.emergentagent.com/api"
+BACKEND_URL = "https://study-sync-44.preview.emergentagent.com/api"
 TEST_EMAIL = "test@studymatch.com"
 TEST_PASSWORD = "test123456"
 TEST_NAME = "Test Student"
 
-class AuthTester:
+class StudyLocationsAPITester:
     def __init__(self):
         self.session = requests.Session()
-        self.test_results = []
         self.auth_token = None
         self.user_data = None
+        self.test_results = []
         
     def log_test(self, test_name, success, details=""):
-        """Log test result"""
+        """Log test results"""
         status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status} {test_name}")
+        if details:
+            print(f"   {details}")
         self.test_results.append({
             "test": test_name,
-            "status": status,
             "success": success,
             "details": details
         })
-        print(f"{status}: {test_name}")
-        if details:
-            print(f"   Details: {details}")
-    
-    def test_register_valid_data(self):
-        """Test registration with valid data"""
+        
+    def register_and_login(self):
+        """Register a new user and login to get auth token"""
+        print("\n=== AUTHENTICATION SETUP ===")
+        
+        # Try to register (might fail if user exists, that's ok)
+        register_data = {
+            "name": TEST_NAME,
+            "email": TEST_EMAIL,
+            "password": TEST_PASSWORD,
+            "gdpr_consent": True
+        }
+        
         try:
-            # First, clean up any existing test user
-            self.cleanup_test_user()
-            
-            payload = {
-                "name": TEST_NAME,
-                "email": TEST_EMAIL,
-                "password": TEST_PASSWORD,
-                "gdpr_consent": True
-            }
-            
-            response = self.session.post(f"{BASE_URL}/auth/register", json=payload)
-            
-            if response.status_code == 201 or response.status_code == 200:
+            response = self.session.post(f"{BACKEND_URL}/auth/register", json=register_data)
+            if response.status_code == 201:
+                print("✅ User registered successfully")
+            elif response.status_code == 409:
+                print("ℹ️  User already exists, proceeding to login")
+            else:
+                print(f"⚠️  Registration response: {response.status_code}")
+        except Exception as e:
+            print(f"⚠️  Registration error: {e}")
+        
+        # Login to get token
+        login_data = {
+            "email": TEST_EMAIL,
+            "password": TEST_PASSWORD
+        }
+        
+        try:
+            response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_data)
+            if response.status_code == 200:
                 data = response.json()
-                if "user" in data and "token" in data:
-                    self.auth_token = data["token"]
-                    self.user_data = data["user"]
-                    self.log_test("Register with valid data", True, 
-                                f"User created with ID: {data['user']['user_id']}")
-                    return True
-                else:
-                    self.log_test("Register with valid data", False, 
-                                f"Missing user or token in response: {data}")
-                    return False
-            else:
-                self.log_test("Register with valid data", False, 
-                            f"Status {response.status_code}: {response.text}")
-                return False
-                
-        except Exception as e:
-            self.log_test("Register with valid data", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_register_duplicate_email(self):
-        """Test registration with duplicate email"""
-        try:
-            payload = {
-                "name": "Another User",
-                "email": TEST_EMAIL,  # Same email as before
-                "password": "different123",
-                "gdpr_consent": True
-            }
-            
-            response = self.session.post(f"{BASE_URL}/auth/register", json=payload)
-            
-            if response.status_code == 409:
-                self.log_test("Register duplicate email returns 409", True, 
-                            "Correctly rejected duplicate email")
+                self.auth_token = data.get("token") or data.get("session_token")
+                self.user_data = data.get("user")
+                print(f"✅ Login successful, token: {self.auth_token[:20]}...")
                 return True
             else:
-                self.log_test("Register duplicate email returns 409", False, 
-                            f"Expected 409, got {response.status_code}: {response.text}")
+                print(f"❌ Login failed: {response.status_code} - {response.text}")
                 return False
-                
         except Exception as e:
-            self.log_test("Register duplicate email returns 409", False, f"Exception: {str(e)}")
+            print(f"❌ Login error: {e}")
             return False
     
-    def test_register_short_password(self):
-        """Test registration with password < 6 characters"""
+    def test_locations_search_no_params(self):
+        """Test GET /api/locations/search with no parameters (should return all 8 locations)"""
         try:
-            payload = {
-                "name": "Test User",
-                "email": "short@test.com",
-                "password": "123",  # Too short
-                "gdpr_consent": True
-            }
-            
-            response = self.session.post(f"{BASE_URL}/auth/register", json=payload)
-            
-            if response.status_code == 400:
-                self.log_test("Register short password returns 400", True, 
-                            "Correctly rejected short password")
-                return True
-            else:
-                self.log_test("Register short password returns 400", False, 
-                            f"Expected 400, got {response.status_code}: {response.text}")
-                return False
-                
-        except Exception as e:
-            self.log_test("Register short password returns 400", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_register_missing_fields(self):
-        """Test registration with missing required fields"""
-        try:
-            payload = {
-                "email": "missing@test.com",
-                # Missing name and password
-                "gdpr_consent": True
-            }
-            
-            response = self.session.post(f"{BASE_URL}/auth/register", json=payload)
-            
-            if response.status_code == 400:
-                self.log_test("Register missing fields returns 400", True, 
-                            "Correctly rejected missing fields")
-                return True
-            else:
-                self.log_test("Register missing fields returns 400", False, 
-                            f"Expected 400, got {response.status_code}: {response.text}")
-                return False
-                
-        except Exception as e:
-            self.log_test("Register missing fields returns 400", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_register_invalid_email(self):
-        """Test registration with invalid email format"""
-        try:
-            payload = {
-                "name": "Test User",
-                "email": "invalid-email",  # Invalid format
-                "password": "test123456",
-                "gdpr_consent": True
-            }
-            
-            response = self.session.post(f"{BASE_URL}/auth/register", json=payload)
-            
-            if response.status_code == 400:
-                self.log_test("Register invalid email returns 400", True, 
-                            "Correctly rejected invalid email")
-                return True
-            else:
-                self.log_test("Register invalid email returns 400", False, 
-                            f"Expected 400, got {response.status_code}: {response.text}")
-                return False
-                
-        except Exception as e:
-            self.log_test("Register invalid email returns 400", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_login_valid_credentials(self):
-        """Test login with correct credentials"""
-        try:
-            payload = {
-                "email": TEST_EMAIL,
-                "password": TEST_PASSWORD
-            }
-            
-            response = self.session.post(f"{BASE_URL}/auth/login", json=payload)
+            response = self.session.get(f"{BACKEND_URL}/locations/search")
             
             if response.status_code == 200:
                 data = response.json()
-                if "user" in data and "token" in data:
-                    # Update token for subsequent tests
-                    self.auth_token = data["token"]
-                    self.user_data = data["user"]
-                    self.log_test("Login with valid credentials", True, 
-                                f"Successfully logged in user: {data['user']['email']}")
-                    return True
+                locations = data.get("locations", [])
+                
+                if len(locations) == 8:
+                    # Check if each location has required fields
+                    required_fields = ["location_id", "name", "type", "address", "description", "opening_hours", "amenities", "busyness"]
+                    all_valid = True
+                    
+                    for loc in locations:
+                        for field in required_fields:
+                            if field not in loc:
+                                all_valid = False
+                                break
+                        
+                        # Check busyness structure
+                        busyness = loc.get("busyness", {})
+                        if not isinstance(busyness, dict) or "level" not in busyness or "percentage" not in busyness:
+                            all_valid = False
+                            break
+                    
+                    if all_valid:
+                        self.log_test("GET /locations/search (no params)", True, f"Returned {len(locations)} locations with all required fields and busyness data")
+                    else:
+                        self.log_test("GET /locations/search (no params)", False, "Some locations missing required fields or busyness data")
                 else:
-                    self.log_test("Login with valid credentials", False, 
-                                f"Missing user or token in response: {data}")
-                    return False
+                    self.log_test("GET /locations/search (no params)", False, f"Expected 8 locations, got {len(locations)}")
             else:
-                self.log_test("Login with valid credentials", False, 
-                            f"Status {response.status_code}: {response.text}")
-                return False
+                self.log_test("GET /locations/search (no params)", False, f"HTTP {response.status_code}: {response.text}")
                 
         except Exception as e:
-            self.log_test("Login with valid credentials", False, f"Exception: {str(e)}")
-            return False
+            self.log_test("GET /locations/search (no params)", False, f"Exception: {e}")
     
-    def test_login_wrong_password(self):
-        """Test login with wrong password"""
+    def test_locations_search_with_query(self):
+        """Test GET /api/locations/search with query parameter"""
         try:
-            payload = {
-                "email": TEST_EMAIL,
-                "password": "wrongpassword"
-            }
+            response = self.session.get(f"{BACKEND_URL}/locations/search?q=Library")
             
-            response = self.session.post(f"{BASE_URL}/auth/login", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                locations = data.get("locations", [])
+                
+                # Should return libraries (Main Library, Science Library, Law Library)
+                library_count = 0
+                for loc in locations:
+                    if "library" in loc.get("name", "").lower() or loc.get("type") == "library":
+                        library_count += 1
+                
+                if library_count >= 3:  # We have 3 libraries in seed data
+                    self.log_test("GET /locations/search?q=Library", True, f"Found {library_count} libraries matching query")
+                else:
+                    self.log_test("GET /locations/search?q=Library", False, f"Expected at least 3 libraries, found {library_count}")
+            else:
+                self.log_test("GET /locations/search?q=Library", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET /locations/search?q=Library", False, f"Exception: {e}")
+    
+    def test_locations_search_with_type_filter(self):
+        """Test GET /api/locations/search with type filter"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/locations/search?type=cafe")
+            
+            if response.status_code == 200:
+                data = response.json()
+                locations = data.get("locations", [])
+                
+                # Should return only cafes (The Study Bean, Quiet Corner Cafe)
+                all_cafes = all(loc.get("type") == "cafe" for loc in locations)
+                cafe_count = len(locations)
+                
+                if all_cafes and cafe_count >= 2:  # We have 2 cafes in seed data
+                    self.log_test("GET /locations/search?type=cafe", True, f"Found {cafe_count} cafes, all correctly filtered")
+                else:
+                    self.log_test("GET /locations/search?type=cafe", False, f"Type filter failed or unexpected count: {cafe_count}")
+            else:
+                self.log_test("GET /locations/search?type=cafe", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET /locations/search?type=cafe", False, f"Exception: {e}")
+    
+    def test_locations_search_combined_filters(self):
+        """Test GET /api/locations/search with both query and type filters"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/locations/search?q=Study&type=study_hub")
+            
+            if response.status_code == 200:
+                data = response.json()
+                locations = data.get("locations", [])
+                
+                # Should return study hubs with "Study" in name (Student Union Hub might match)
+                all_study_hubs = all(loc.get("type") == "study_hub" for loc in locations)
+                
+                if all_study_hubs:
+                    self.log_test("GET /locations/search?q=Study&type=study_hub", True, f"Found {len(locations)} study hubs matching query")
+                else:
+                    self.log_test("GET /locations/search?q=Study&type=study_hub", False, "Combined filter failed - not all results are study_hub type")
+            else:
+                self.log_test("GET /locations/search?q=Study&type=study_hub", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET /locations/search?q=Study&type=study_hub", False, f"Exception: {e}")
+    
+    def test_get_location_valid_id(self):
+        """Test GET /api/locations/{location_id} with valid ID"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/locations/loc_001")
+            
+            if response.status_code == 200:
+                location = response.json()
+                
+                # Check required fields
+                required_fields = ["location_id", "name", "type", "address", "description", "opening_hours", "amenities", "busyness"]
+                has_all_fields = all(field in location for field in required_fields)
+                
+                # Check busyness structure
+                busyness = location.get("busyness", {})
+                has_busyness = isinstance(busyness, dict) and "level" in busyness and "percentage" in busyness
+                
+                if has_all_fields and has_busyness and location.get("location_id") == "loc_001":
+                    self.log_test("GET /locations/loc_001", True, f"Retrieved location: {location.get('name')} with busyness data")
+                else:
+                    self.log_test("GET /locations/loc_001", False, "Missing required fields or incorrect location_id")
+            else:
+                self.log_test("GET /locations/loc_001", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET /locations/loc_001", False, f"Exception: {e}")
+    
+    def test_get_location_invalid_id(self):
+        """Test GET /api/locations/{location_id} with invalid ID"""
+        try:
+            response = self.session.get(f"{BACKEND_URL}/locations/nonexistent")
+            
+            if response.status_code == 404:
+                self.log_test("GET /locations/nonexistent", True, "Correctly returned 404 for invalid location ID")
+            else:
+                self.log_test("GET /locations/nonexistent", False, f"Expected 404, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("GET /locations/nonexistent", False, f"Exception: {e}")
+    
+    def test_share_location_without_auth(self):
+        """Test POST /api/locations/share without authentication"""
+        try:
+            share_data = {"location_id": "loc_001"}
+            response = self.session.post(f"{BACKEND_URL}/locations/share", json=share_data)
             
             if response.status_code == 401:
-                self.log_test("Login wrong password returns 401", True, 
-                            "Correctly rejected wrong password")
-                return True
+                self.log_test("POST /locations/share (no auth)", True, "Correctly returned 401 for unauthenticated request")
             else:
-                self.log_test("Login wrong password returns 401", False, 
-                            f"Expected 401, got {response.status_code}: {response.text}")
-                return False
+                self.log_test("POST /locations/share (no auth)", False, f"Expected 401, got {response.status_code}")
                 
         except Exception as e:
-            self.log_test("Login wrong password returns 401", False, f"Exception: {str(e)}")
-            return False
+            self.log_test("POST /locations/share (no auth)", False, f"Exception: {e}")
     
-    def test_login_nonexistent_email(self):
-        """Test login with non-existent email"""
+    def test_share_location_missing_location_id(self):
+        """Test POST /api/locations/share with missing location_id"""
+        if not self.auth_token:
+            self.log_test("POST /locations/share (missing location_id)", False, "No auth token available")
+            return
+            
         try:
-            payload = {
-                "email": "nonexistent@test.com",
-                "password": TEST_PASSWORD
-            }
-            
-            response = self.session.post(f"{BASE_URL}/auth/login", json=payload)
-            
-            if response.status_code == 401:
-                self.log_test("Login nonexistent email returns 401", True, 
-                            "Correctly rejected nonexistent email")
-                return True
-            else:
-                self.log_test("Login nonexistent email returns 401", False, 
-                            f"Expected 401, got {response.status_code}: {response.text}")
-                return False
-                
-        except Exception as e:
-            self.log_test("Login nonexistent email returns 401", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_bearer_token_auth_me(self):
-        """Test Bearer token authentication with /auth/me"""
-        try:
-            if not self.auth_token:
-                self.log_test("Bearer token auth /auth/me", False, "No auth token available")
-                return False
-            
             headers = {"Authorization": f"Bearer {self.auth_token}"}
-            response = self.session.get(f"{BASE_URL}/auth/me", headers=headers)
+            share_data = {}  # Missing location_id
+            response = self.session.post(f"{BACKEND_URL}/locations/share", json=share_data, headers=headers)
             
-            if response.status_code == 200:
-                data = response.json()
-                if "user_id" in data and "email" in data:
-                    self.log_test("Bearer token auth /auth/me", True, 
-                                f"Successfully retrieved user data for: {data['email']}")
-                    return True
-                else:
-                    self.log_test("Bearer token auth /auth/me", False, 
-                                f"Invalid user data structure: {data}")
-                    return False
+            if response.status_code == 400:
+                self.log_test("POST /locations/share (missing location_id)", True, "Correctly returned 400 for missing location_id")
             else:
-                self.log_test("Bearer token auth /auth/me", False, 
-                            f"Status {response.status_code}: {response.text}")
-                return False
+                self.log_test("POST /locations/share (missing location_id)", False, f"Expected 400, got {response.status_code}")
                 
         except Exception as e:
-            self.log_test("Bearer token auth /auth/me", False, f"Exception: {str(e)}")
-            return False
+            self.log_test("POST /locations/share (missing location_id)", False, f"Exception: {e}")
     
-    def test_bearer_token_without_token(self):
-        """Test /auth/me without token returns 401"""
-        try:
-            response = self.session.get(f"{BASE_URL}/auth/me")
+    def test_share_location_invalid_location_id(self):
+        """Test POST /api/locations/share with invalid location_id"""
+        if not self.auth_token:
+            self.log_test("POST /locations/share (invalid location_id)", False, "No auth token available")
+            return
             
-            if response.status_code == 401:
-                self.log_test("Auth/me without token returns 401", True, 
-                            "Correctly rejected request without token")
-                return True
-            else:
-                self.log_test("Auth/me without token returns 401", False, 
-                            f"Expected 401, got {response.status_code}: {response.text}")
-                return False
-                
-        except Exception as e:
-            self.log_test("Auth/me without token returns 401", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_bearer_token_protected_endpoint(self):
-        """Test Bearer token with another protected endpoint"""
         try:
-            if not self.auth_token:
-                self.log_test("Bearer token protected endpoint", False, "No auth token available")
-                return False
-            
             headers = {"Authorization": f"Bearer {self.auth_token}"}
-            response = self.session.get(f"{BASE_URL}/users/profile", headers=headers)
+            share_data = {"location_id": "invalid_location"}
+            response = self.session.post(f"{BACKEND_URL}/locations/share", json=share_data, headers=headers)
             
-            if response.status_code == 200:
-                data = response.json()
-                self.log_test("Bearer token protected endpoint", True, 
-                            f"Successfully accessed /users/profile")
-                return True
+            if response.status_code == 404:
+                self.log_test("POST /locations/share (invalid location_id)", True, "Correctly returned 404 for invalid location_id")
             else:
-                self.log_test("Bearer token protected endpoint", False, 
-                            f"Status {response.status_code}: {response.text}")
-                return False
+                self.log_test("POST /locations/share (invalid location_id)", False, f"Expected 404, got {response.status_code}")
                 
         except Exception as e:
-            self.log_test("Bearer token protected endpoint", False, f"Exception: {str(e)}")
-            return False
+            self.log_test("POST /locations/share (invalid location_id)", False, f"Exception: {e}")
     
-    def test_full_auth_flow(self):
-        """Test complete authentication flow"""
+    def test_share_location_no_group(self):
+        """Test POST /api/locations/share when user has no group"""
+        if not self.auth_token:
+            self.log_test("POST /locations/share (no group)", False, "No auth token available")
+            return
+            
         try:
-            # Clean up first
-            self.cleanup_test_user()
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            share_data = {"location_id": "loc_001"}
+            response = self.session.post(f"{BACKEND_URL}/locations/share", json=share_data, headers=headers)
             
-            # 1. Register
-            register_payload = {
-                "name": "Flow Test User",
-                "email": f"flowtest_{uuid.uuid4().hex[:8]}@studymatch.com",
-                "password": "flowtest123",
-                "gdpr_consent": True
-            }
-            
-            register_response = self.session.post(f"{BASE_URL}/auth/register", json=register_payload)
-            if register_response.status_code not in [200, 201]:
-                self.log_test("Full auth flow", False, f"Register failed: {register_response.text}")
-                return False
-            
-            register_data = register_response.json()
-            flow_token = register_data["token"]
-            
-            # 2. Use token for /auth/me
-            headers = {"Authorization": f"Bearer {flow_token}"}
-            me_response = self.session.get(f"{BASE_URL}/auth/me", headers=headers)
-            if me_response.status_code != 200:
-                self.log_test("Full auth flow", False, f"/auth/me failed: {me_response.text}")
-                return False
-            
-            # 3. Login with same credentials
-            login_payload = {
-                "email": register_payload["email"],
-                "password": register_payload["password"]
-            }
-            
-            login_response = self.session.post(f"{BASE_URL}/auth/login", json=login_payload)
-            if login_response.status_code != 200:
-                self.log_test("Full auth flow", False, f"Login failed: {login_response.text}")
-                return False
-            
-            login_data = login_response.json()
-            new_token = login_data["token"]
-            
-            # 4. Use new token for protected endpoint
-            headers = {"Authorization": f"Bearer {new_token}"}
-            profile_response = self.session.get(f"{BASE_URL}/users/profile", headers=headers)
-            if profile_response.status_code != 200:
-                self.log_test("Full auth flow", False, f"Profile access failed: {profile_response.text}")
-                return False
-            
-            self.log_test("Full auth flow", True, 
-                        "Complete flow: Register → Get token → /auth/me → Login → New token → Protected endpoint")
-            return True
-            
+            if response.status_code == 400:
+                response_data = response.json()
+                if "must be in a group" in response_data.get("detail", "").lower():
+                    self.log_test("POST /locations/share (no group)", True, "Correctly returned 400 - user must be in a group")
+                else:
+                    self.log_test("POST /locations/share (no group)", False, f"Wrong error message: {response_data}")
+            else:
+                self.log_test("POST /locations/share (no group)", False, f"Expected 400, got {response.status_code}")
+                
         except Exception as e:
-            self.log_test("Full auth flow", False, f"Exception: {str(e)}")
-            return False
-    
-    def cleanup_test_user(self):
-        """Clean up test user if exists"""
-        try:
-            # Try to login and delete session if user exists
-            payload = {"email": TEST_EMAIL, "password": TEST_PASSWORD}
-            response = self.session.post(f"{BASE_URL}/auth/login", json=payload)
-            if response.status_code == 200:
-                data = response.json()
-                token = data["token"]
-                headers = {"Authorization": f"Bearer {token}"}
-                # Logout to clean session
-                self.session.post(f"{BASE_URL}/auth/logout", headers=headers)
-        except:
-            pass  # Ignore cleanup errors
+            self.log_test("POST /locations/share (no group)", False, f"Exception: {e}")
     
     def run_all_tests(self):
-        """Run all authentication tests"""
-        print("=" * 60)
-        print("StudyMatch Backend Authentication Testing")
-        print("=" * 60)
-        print(f"Testing against: {BASE_URL}")
-        print()
+        """Run all Study Locations endpoint tests"""
+        print("🧪 StudyMatch Study Locations API Testing")
+        print("=" * 50)
         
-        # Test registration
-        print("🔐 REGISTRATION TESTS")
-        print("-" * 30)
-        self.test_register_valid_data()
-        self.test_register_duplicate_email()
-        self.test_register_short_password()
-        self.test_register_missing_fields()
-        self.test_register_invalid_email()
+        # Setup authentication
+        if not self.register_and_login():
+            print("❌ Authentication setup failed, cannot proceed with auth-required tests")
+            return False
         
-        print()
-        print("🔑 LOGIN TESTS")
-        print("-" * 30)
-        self.test_login_valid_credentials()
-        self.test_login_wrong_password()
-        self.test_login_nonexistent_email()
+        print("\n=== STUDY LOCATIONS ENDPOINTS TESTING ===")
         
-        print()
-        print("🎫 BEARER TOKEN TESTS")
-        print("-" * 30)
-        self.test_bearer_token_auth_me()
-        self.test_bearer_token_without_token()
-        self.test_bearer_token_protected_endpoint()
+        # Test search endpoints
+        self.test_locations_search_no_params()
+        self.test_locations_search_with_query()
+        self.test_locations_search_with_type_filter()
+        self.test_locations_search_combined_filters()
         
-        print()
-        print("🔄 FULL FLOW TEST")
-        print("-" * 30)
-        self.test_full_auth_flow()
+        # Test individual location endpoint
+        self.test_get_location_valid_id()
+        self.test_get_location_invalid_id()
+        
+        # Test share location endpoint
+        self.test_share_location_without_auth()
+        self.test_share_location_missing_location_id()
+        self.test_share_location_invalid_location_id()
+        self.test_share_location_no_group()
         
         # Summary
-        print()
-        print("=" * 60)
-        print("TEST SUMMARY")
-        print("=" * 60)
+        print("\n" + "=" * 50)
+        print("📊 TEST SUMMARY")
+        print("=" * 50)
         
-        passed = sum(1 for result in self.test_results if result["success"])
-        total = len(self.test_results)
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
         
-        print(f"Total Tests: {total}")
-        print(f"Passed: {passed}")
-        print(f"Failed: {total - passed}")
-        print(f"Success Rate: {(passed/total)*100:.1f}%")
+        print(f"Total Tests: {total_tests}")
+        print(f"✅ Passed: {passed_tests}")
+        print(f"❌ Failed: {failed_tests}")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
         
-        print()
-        print("DETAILED RESULTS:")
-        for result in self.test_results:
-            print(f"{result['status']}: {result['test']}")
-            if result['details']:
-                print(f"   {result['details']}")
+        if failed_tests > 0:
+            print("\n❌ FAILED TESTS:")
+            for result in self.test_results:
+                if not result["success"]:
+                    print(f"  • {result['test']}: {result['details']}")
         
-        return passed == total
+        return failed_tests == 0
 
 if __name__ == "__main__":
-    tester = AuthTester()
+    tester = StudyLocationsAPITester()
     success = tester.run_all_tests()
-    exit(0 if success else 1)
+    sys.exit(0 if success else 1)

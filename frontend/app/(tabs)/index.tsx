@@ -217,6 +217,14 @@ export default function HomeScreen() {
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.actionCard}
+            onPress={() => router.push('/study-spots')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="search" size={32} color="#FF9800" />
+            <Text style={styles.actionText}>Search &{'\n'}Share</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.actionCard}
             onPress={() => router.push('/(tabs)/profile')}
             activeOpacity={0.7}
           >
@@ -446,5 +454,6 @@ const styles = StyleSheet.create({
     color: '#333',
     marginTop: 8,
     fontWeight: '500',
+    textAlign: 'center',
   },
 });

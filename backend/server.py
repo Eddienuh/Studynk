@@ -1057,6 +1057,205 @@ async def health_check():
     return {"status": "healthy"}
 
 # Include router
+import random
+
+# ==================== STUDY LOCATIONS SEED DATA ====================
+
+STUDY_LOCATIONS_SEED = [
+    {
+        "location_id": "loc_001",
+        "name": "Main Library",
+        "type": "library",
+        "address": "University Campus, Building A",
+        "description": "The main university library with 3 floors of study space, group rooms, and silent zones.",
+        "opening_hours": {"weekday": "07:00 - 23:00", "saturday": "08:00 - 22:00", "sunday": "09:00 - 21:00"},
+        "amenities": ["WiFi", "Power outlets", "Group rooms", "Silent zone", "Printers", "Cafe"],
+        "latitude": 51.5074,
+        "longitude": -0.1278,
+        "capacity": 500,
+        "image_url": None,
+    },
+    {
+        "location_id": "loc_002",
+        "name": "Science Library",
+        "type": "library",
+        "address": "Science Quarter, Floor 2",
+        "description": "Specialist science and engineering library with lab-adjacent study pods and STEM resources.",
+        "opening_hours": {"weekday": "08:00 - 22:00", "saturday": "09:00 - 20:00", "sunday": "10:00 - 18:00"},
+        "amenities": ["WiFi", "Power outlets", "STEM databases", "3D printers", "Whiteboards"],
+        "latitude": 51.5084,
+        "longitude": -0.1268,
+        "capacity": 200,
+        "image_url": None,
+    },
+    {
+        "location_id": "loc_003",
+        "name": "The Study Bean",
+        "type": "cafe",
+        "address": "12 College Road",
+        "description": "Student-friendly cafe with great coffee, fast WiFi, and a relaxed atmosphere perfect for group work.",
+        "opening_hours": {"weekday": "07:30 - 21:00", "saturday": "08:00 - 21:00", "sunday": "09:00 - 19:00"},
+        "amenities": ["WiFi", "Power outlets", "Coffee", "Snacks", "Background music"],
+        "latitude": 51.5064,
+        "longitude": -0.1288,
+        "capacity": 60,
+        "image_url": None,
+    },
+    {
+        "location_id": "loc_004",
+        "name": "Student Union Hub",
+        "type": "study_hub",
+        "address": "Student Union Building, Level 1",
+        "description": "Open-plan study area in the SU with bookable group tables and presentation screens.",
+        "opening_hours": {"weekday": "08:00 - 00:00", "saturday": "09:00 - 22:00", "sunday": "10:00 - 22:00"},
+        "amenities": ["WiFi", "Power outlets", "Group tables", "Screens", "Vending machines", "Microwave"],
+        "latitude": 51.5094,
+        "longitude": -0.1258,
+        "capacity": 150,
+        "image_url": None,
+    },
+    {
+        "location_id": "loc_005",
+        "name": "Quiet Corner Cafe",
+        "type": "cafe",
+        "address": "34 Academic Avenue",
+        "description": "A cozy, quiet cafe popular with postgrads. No loud music policy makes it ideal for deep focus sessions.",
+        "opening_hours": {"weekday": "08:00 - 20:00", "saturday": "09:00 - 18:00", "sunday": "Closed"},
+        "amenities": ["WiFi", "Power outlets", "Quiet policy", "Tea & Coffee", "Pastries"],
+        "latitude": 51.5054,
+        "longitude": -0.1298,
+        "capacity": 35,
+        "image_url": None,
+    },
+    {
+        "location_id": "loc_006",
+        "name": "24hr Learning Commons",
+        "type": "study_hub",
+        "address": "University Campus, Building C",
+        "description": "Round-the-clock study space with individual desks, group pods, and a help desk during term time.",
+        "opening_hours": {"weekday": "Open 24 hours", "saturday": "Open 24 hours", "sunday": "Open 24 hours"},
+        "amenities": ["WiFi", "Power outlets", "24hr access", "Vending machines", "Help desk", "Lockers"],
+        "latitude": 51.5104,
+        "longitude": -0.1248,
+        "capacity": 300,
+        "image_url": None,
+    },
+    {
+        "location_id": "loc_007",
+        "name": "Law Library",
+        "type": "library",
+        "address": "Law Faculty, Ground Floor",
+        "description": "Dedicated law library with legal databases, case study rooms, and moot court practice facilities.",
+        "opening_hours": {"weekday": "08:00 - 21:00", "saturday": "09:00 - 17:00", "sunday": "Closed"},
+        "amenities": ["WiFi", "Legal databases", "Case study rooms", "Quiet study", "Printers"],
+        "latitude": 51.5044,
+        "longitude": -0.1308,
+        "capacity": 120,
+        "image_url": None,
+    },
+    {
+        "location_id": "loc_008",
+        "name": "Campus Green Co-work",
+        "type": "study_hub",
+        "address": "Innovation Park, Unit 5",
+        "description": "Modern co-working space near campus with standing desks, phone booths, and bookable meeting rooms.",
+        "opening_hours": {"weekday": "07:00 - 22:00", "saturday": "08:00 - 20:00", "sunday": "09:00 - 18:00"},
+        "amenities": ["WiFi", "Standing desks", "Meeting rooms", "Phone booths", "Coffee bar", "Bike storage"],
+        "latitude": 51.5114,
+        "longitude": -0.1238,
+        "capacity": 80,
+        "image_url": None,
+    },
+]
+
+def get_busyness():
+    """Simulate real-time busyness level"""
+    level = random.choice(["quiet", "moderate", "busy", "very_busy"])
+    percentage = {"quiet": random.randint(10, 30), "moderate": random.randint(31, 55),
+                  "busy": random.randint(56, 80), "very_busy": random.randint(81, 95)}
+    return {"level": level, "percentage": percentage[level]}
+
+async def seed_locations():
+    """Seed study locations if collection is empty"""
+    count = await db.study_locations.count_documents({})
+    if count == 0:
+        await db.study_locations.insert_many(STUDY_LOCATIONS_SEED)
+        logger.info(f"Seeded {len(STUDY_LOCATIONS_SEED)} study locations")
+
+# ==================== STUDY LOCATION ROUTES ====================
+
+@api_router.get("/locations/search")
+async def search_locations(q: str = "", type: str = ""):
+    """Search study locations by name or type"""
+    query = {}
+    if q:
+        query["name"] = {"$regex": q, "$options": "i"}
+    if type and type != "all":
+        query["type"] = type
+
+    locations = await db.study_locations.find(query, {"_id": 0}).to_list(50)
+
+    # Add simulated busyness to each
+    for loc in locations:
+        loc["busyness"] = get_busyness()
+
+    return {"locations": locations}
+
+@api_router.get("/locations/{location_id}")
+async def get_location(location_id: str):
+    """Get study location details with busyness"""
+    location = await db.study_locations.find_one({"location_id": location_id}, {"_id": 0})
+    if not location:
+        raise HTTPException(status_code=404, detail="Location not found")
+
+    location["busyness"] = get_busyness()
+    return location
+
+@api_router.post("/locations/share")
+async def share_location(request: Request):
+    """Share a study location to the user's group chat"""
+    user = await get_current_user(request)
+    body = await request.json()
+    location_id = body.get("location_id")
+
+    if not location_id:
+        raise HTTPException(status_code=400, detail="location_id is required")
+
+    # Get location
+    location = await db.study_locations.find_one({"location_id": location_id}, {"_id": 0})
+    if not location:
+        raise HTTPException(status_code=404, detail="Location not found")
+
+    # Check user has a group
+    if not user.get("group_id"):
+        raise HTTPException(status_code=400, detail="You must be in a group to share locations")
+
+    # Create a special location message in group chat
+    message = {
+        "message_id": f"msg_{uuid.uuid4().hex[:12]}",
+        "group_id": user["group_id"],
+        "sender_id": user["user_id"],
+        "sender_name": user.get("name", "Unknown"),
+        "content": f"📍 Meet Me Here!\n\n{location['name']}\n{location['address']}\n\nType: {location['type'].replace('_', ' ').title()}\nHours: {location['opening_hours'].get('weekday', 'N/A')}",
+        "message_type": "location_share",
+        "location_data": {
+            "location_id": location["location_id"],
+            "name": location["name"],
+            "address": location["address"],
+            "type": location["type"],
+            "latitude": location.get("latitude"),
+            "longitude": location.get("longitude"),
+            "opening_hours": location.get("opening_hours"),
+        },
+        "created_at": datetime.now(timezone.utc),
+    }
+
+    await db.messages.insert_one(message)
+    message.pop("_id", None)
+
+    return {"message": "Location shared to group chat!", "chat_message": message}
+
+
 app.include_router(api_router)
 
 # CORS
@@ -1078,3 +1277,7 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+@app.on_event("startup")
+async def startup_event():
+    await seed_locations()

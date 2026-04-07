@@ -17,6 +17,7 @@ export default function RootLayout() {
           <Stack.Screen name="privacy" />
           <Stack.Screen name="terms" />
           <Stack.Screen name="edit-profile" />
+          <Stack.Screen name="study-spots" />
           <Stack.Screen name="(tabs)" />
         </Stack>
       </AuthProvider>
