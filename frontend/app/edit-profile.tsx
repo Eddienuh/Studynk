@@ -18,7 +18,7 @@ const LOCATIONS = ['Library', 'Home', 'Campus spaces'];
 
 export default function EditProfileScreen() {
   const router = useRouter();
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, token } = useAuth();
   const [editingField, setEditingField] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     university: user?.university || '',
@@ -35,8 +35,10 @@ export default function EditProfileScreen() {
       const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
       const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/users/profile`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ [field]: formData[field as keyof typeof formData] }),
       });
 

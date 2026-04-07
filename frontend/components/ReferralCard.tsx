@@ -11,9 +11,10 @@ import { Ionicons } from '@expo/vector-icons';
 
 interface ReferralCardProps {
   userId?: string;
+  token?: string | null;
 }
 
-export default function ReferralCard({ userId }: ReferralCardProps) {
+export default function ReferralCard({ userId, token }: ReferralCardProps) {
   const [referralCode, setReferralCode] = useState<string>('');
   const [referralCount, setReferralCount] = useState<number>(0);
   const [isPro, setIsPro] = useState(false);
@@ -29,7 +30,7 @@ export default function ReferralCard({ userId }: ReferralCardProps) {
       
       // Get subscription status
       const statusRes = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/subscription/status`, {
-        credentials: 'include',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
       });
       
       if (statusRes.ok) {
@@ -53,7 +54,7 @@ export default function ReferralCard({ userId }: ReferralCardProps) {
       const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
       const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/subscription/generate-referral`, {
         method: 'POST',
-        credentials: 'include',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
       });
       
       if (response.ok) {
