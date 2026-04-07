@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
+import * as Linking from 'expo-linking';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -16,19 +17,38 @@ export default function AuthCallback() {
 
     const processSession = async () => {
       try {
-        // Extract session_id from URL fragment
-        const hash = typeof window !== 'undefined' ? window.location.hash : '';
-        console.log('Auth callback hash:', hash);
-        
-        const sessionIdMatch = hash.match(/session_id=([^&]+)/);
-        
-        if (!sessionIdMatch) {
-          console.error('No session_id found in hash');
+        let sessionId: string | null = null;
+
+        // Try to extract session_id from the current URL
+        if (Platform.OS === 'web') {
+          // On web, check URL hash
+          const hash = typeof window !== 'undefined' ? window.location.hash : '';
+          const match = hash.match(/session_id=([^&]+)/);
+          if (match) sessionId = match[1];
+        }
+
+        // Also try the Linking URL (works for both platforms)
+        if (!sessionId) {
+          const url = await Linking.getInitialURL();
+          if (url) {
+            const hashPart = url.split('#')[1] || '';
+            const match = hashPart.match(/session_id=([^&]+)/);
+            if (match) sessionId = match[1];
+            
+            // Also check query params
+            if (!sessionId) {
+              const queryMatch = url.match(/session_id=([^&#]+)/);
+              if (queryMatch) sessionId = queryMatch[1];
+            }
+          }
+        }
+
+        if (!sessionId) {
+          console.error('No session_id found');
           router.replace('/login');
           return;
         }
 
-        const sessionId = sessionIdMatch[1];
         console.log('Session ID extracted:', sessionId.substring(0, 10) + '...');
 
         // Exchange session_id for user data
@@ -48,14 +68,16 @@ export default function AuthCallback() {
         const data = await response.json();
         console.log('User data received:', data.user?.email);
 
-        // Get the token - either from response or from session_id as fallback
         const authToken = data.token || sessionId;
-        
         await login(data.user, authToken);
 
-        // Clear the hash from URL
-        if (typeof window !== 'undefined') {
-          window.history.replaceState(null, '', window.location.pathname);
+        // Clear the hash from URL on web
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          try {
+            window.history.replaceState(null, '', window.location.pathname);
+          } catch (e) {
+            // Ignore if not supported
+          }
         }
 
         // Redirect based on onboarding status

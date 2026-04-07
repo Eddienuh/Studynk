@@ -14,6 +14,8 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -24,7 +26,70 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const handleGoogleLogin = async () => {
+    setError('');
+    setGoogleLoading(true);
+    try {
+      // Build redirect URL based on platform
+      const redirectUrl = Platform.OS === 'web'
+        ? Linking.createURL('/auth-callback')
+        : Linking.createURL('/auth-callback');
+      
+      const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+      
+      if (Platform.OS === 'web') {
+        // On web, use Linking.openURL which handles cross-platform
+        await Linking.openURL(authUrl);
+      } else {
+        // On mobile, use WebBrowser for in-app auth session
+        const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
+        
+        if (result.type === 'success' && result.url) {
+          // Extract session_id from the returned URL
+          const urlHash = result.url.split('#')[1] || '';
+          const sessionIdMatch = urlHash.match(/session_id=([^&]+)/);
+          
+          if (sessionIdMatch) {
+            const sessionId = sessionIdMatch[1];
+            
+            // Exchange session_id for user data
+            const response = await fetch(`${BACKEND_URL}/api/auth/session`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ session_id: sessionId }),
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              const authToken = data.token || sessionId;
+              await login(data.user, authToken);
+
+              if (data.user.onboarding_completed) {
+                router.replace('/(tabs)');
+              } else {
+                router.replace('/onboarding');
+              }
+              return;
+            } else {
+              setError('Google sign-in failed. Please try again.');
+            }
+          } else {
+            setError('Could not complete Google sign-in.');
+          }
+        } else if (result.type === 'cancel') {
+          // User cancelled, do nothing
+        }
+      }
+    } catch (err) {
+      console.error('Google login error:', err);
+      setError('Google sign-in failed. Please try again.');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleLogin = async () => {
     setError('');
@@ -153,18 +218,17 @@ export default function LoginScreen() {
 
           <TouchableOpacity
             style={styles.googleButton}
-            onPress={() => {
-              const redirectUrl = typeof window !== 'undefined'
-                ? `${window.location.origin}/auth-callback`
-                : 'http://localhost:3000/auth-callback';
-              const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
-              if (typeof window !== 'undefined') {
-                window.location.href = authUrl;
-              }
-            }}
+            onPress={handleGoogleLogin}
+            disabled={googleLoading}
           >
-            <Ionicons name="logo-google" size={22} color="#333" style={styles.googleIcon} />
-            <Text style={styles.googleButtonText}>Continue with Google</Text>
+            {googleLoading ? (
+              <ActivityIndicator color="#333" />
+            ) : (
+              <>
+                <Ionicons name="logo-google" size={22} color="#333" style={styles.googleIcon} />
+                <Text style={styles.googleButtonText}>Continue with Google</Text>
+              </>
+            )}
           </TouchableOpacity>
 
           <View style={styles.footer}>

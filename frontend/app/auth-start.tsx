@@ -1,18 +1,60 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+import { useAuth } from '../contexts/AuthContext';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export default function AuthStartScreen() {
   const router = useRouter();
+  const { login } = useAuth();
+  const [loading, setLoading] = useState(false);
 
-  const handleGoogleLogin = () => {
-    const redirectUrl = typeof window !== 'undefined' 
-      ? `${window.location.origin}/auth-callback`
-      : 'http://localhost:3000/auth-callback';
-    
-    const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
-    Linking.openURL(authUrl);
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      const redirectUrl = Linking.createURL('/auth-callback');
+      const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+
+      if (Platform.OS === 'web') {
+        await Linking.openURL(authUrl);
+      } else {
+        const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
+        
+        if (result.type === 'success' && result.url) {
+          const urlHash = result.url.split('#')[1] || '';
+          const sessionIdMatch = urlHash.match(/session_id=([^&]+)/);
+          
+          if (sessionIdMatch) {
+            const sessionId = sessionIdMatch[1];
+            const response = await fetch(`${BACKEND_URL}/api/auth/session`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ session_id: sessionId }),
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              const authToken = data.token || sessionId;
+              await login(data.user, authToken);
+
+              if (data.user.onboarding_completed) {
+                router.replace('/(tabs)');
+              } else {
+                router.replace('/onboarding');
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -23,11 +65,17 @@ export default function AuthStartScreen() {
         </View>
         
         <Text style={styles.title}>Sign in to continue</Text>
-        <Text style={styles.subtitle}>We'll use this to verify you're a real student</Text>
+        <Text style={styles.subtitle}>We will use this to verify you are a real student</Text>
 
-        <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
-          <Ionicons name="logo-google" size={24} color="#FFF" style={styles.googleIcon} />
-          <Text style={styles.googleButtonText}>Continue with Google</Text>
+        <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <>
+              <Ionicons name="logo-google" size={24} color="#FFF" style={styles.googleIcon} />
+              <Text style={styles.googleButtonText}>Continue with Google</Text>
+            </>
+          )}
         </TouchableOpacity>
         
         <Text style={styles.helpText}>
@@ -87,11 +135,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     maxWidth: 400,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    minHeight: 52,
   },
   googleIcon: {
     marginRight: 12,
@@ -100,21 +144,6 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 18,
     fontWeight: '600',
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E0F7FA',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginTop: 16,
-  },
-  badgeText: {
-    fontSize: 14,
-    color: '#2DAFE3',
-    marginLeft: 6,
-    fontWeight: '500',
   },
   helpText: {
     fontSize: 14,
