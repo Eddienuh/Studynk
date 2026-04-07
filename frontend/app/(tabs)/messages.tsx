@@ -14,7 +14,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function MessagesScreen() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [group, setGroup] = useState<any>(null);
@@ -27,7 +27,7 @@ export default function MessagesScreen() {
       
       // Get group first
       const groupRes = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/groups/my-group`, {
-        credentials: 'include',
+        headers: { 'Authorization': `Bearer ${token}` },
       });
       
       if (groupRes.ok) {
@@ -38,7 +38,7 @@ export default function MessagesScreen() {
           // Fetch messages
           const messagesRes = await fetch(
             `${EXPO_PUBLIC_BACKEND_URL}/api/messages/group/${groupData.group.group_id}`,
-            { credentials: 'include' }
+            { headers: { 'Authorization': `Bearer ${token}` } }
           );
           
           if (messagesRes.ok) {
@@ -72,8 +72,7 @@ export default function MessagesScreen() {
       const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
       const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/messages/send`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ content: newMessage }),
       });
 

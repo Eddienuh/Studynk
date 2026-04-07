@@ -13,9 +13,14 @@ import uuid
 from datetime import datetime, timezone, timedelta
 import requests
 import re
+import bcrypt
+import jwt
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+JWT_SECRET = os.environ.get('JWT_SECRET', 'studymatch-secret-key-change-in-production')
+JWT_ALGORITHM = "HS256"
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -92,14 +97,14 @@ async def get_current_user(request: Request) -> Dict[str, Any]:
     """Extract user from session token (cookie or Authorization header)"""
     session_token = None
     
-    # Try cookie first
-    session_token = request.cookies.get("session_token")
+    # Try Authorization header first (mobile-friendly)
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        session_token = auth_header.split(" ")[1]
     
-    # Fallback to Authorization header
+    # Fallback to cookie
     if not session_token:
-        auth_header = request.headers.get("Authorization")
-        if auth_header and auth_header.startswith("Bearer "):
-            session_token = auth_header.split(" ")[1]
+        session_token = request.cookies.get("session_token")
     
     if not session_token:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -131,6 +136,9 @@ async def get_current_user(request: Request) -> Dict[str, Any]:
     
     if not user_doc:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    # Remove password_hash from response
+    user_doc.pop("password_hash", None)
     
     return user_doc
 
@@ -226,13 +234,141 @@ async def create_session(request: Request, response: Response):
     
     # Return user data
     user_doc = await db.users.find_one({"user_id": user_id}, {"_id": 0})
-    return {"user": user_doc}
+    user_doc.pop("password_hash", None)
+    return {"user": user_doc, "token": session_token}
 
 @api_router.get("/auth/me")
 async def get_me(request: Request):
     """Get current user from session"""
     user = await get_current_user(request)
     return user
+
+@api_router.post("/auth/register")
+async def register(request: Request):
+    """Register a new user with email and password"""
+    body = await request.json()
+    email = body.get("email", "").strip().lower()
+    password = body.get("password", "")
+    name = body.get("name", "").strip()
+    gdpr_consent = body.get("gdpr_consent", False)
+
+    if not email or not password or not name:
+        raise HTTPException(status_code=400, detail="Name, email, and password are required")
+
+    if len(password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+
+    if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
+        raise HTTPException(status_code=400, detail="Invalid email format")
+
+    # Check if user already exists
+    existing = await db.users.find_one({"email": email})
+    if existing:
+        raise HTTPException(status_code=409, detail="An account with this email already exists")
+
+    # Hash password
+    hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    # Create user
+    user_id = f"user_{uuid.uuid4().hex[:12]}"
+    referral_code = generate_referral_code(user_id)
+
+    new_user = {
+        "user_id": user_id,
+        "email": email,
+        "name": name,
+        "picture": None,
+        "password_hash": hashed_pw,
+        "university": None,
+        "course": None,
+        "study_style": None,
+        "grade_goal": None,
+        "location_preference": None,
+        "weekly_availability": [],
+        "work_ethic": 5,
+        "onboarding_completed": False,
+        "matching_status": "pending",
+        "group_id": None,
+        "subscription_tier": "free",
+        "pro_expires_at": None,
+        "referral_code": referral_code,
+        "referred_by": None,
+        "referrals_count": 0,
+        "last_rematch_date": None,
+        "rematch_count_this_week": 0,
+        "gdpr_consent": gdpr_consent,
+        "gdpr_consent_date": datetime.now(timezone.utc) if gdpr_consent else None,
+        "created_at": datetime.now(timezone.utc),
+    }
+
+    await db.users.insert_one(new_user)
+
+    # Create session token
+    session_token = jwt.encode(
+        {"user_id": user_id, "exp": datetime.now(timezone.utc) + timedelta(days=7)},
+        JWT_SECRET, algorithm=JWT_ALGORITHM
+    )
+
+    session_doc = {
+        "user_id": user_id,
+        "session_token": session_token,
+        "expires_at": datetime.now(timezone.utc) + timedelta(days=7),
+        "created_at": datetime.now(timezone.utc),
+    }
+    await db.user_sessions.update_one(
+        {"user_id": user_id}, {"$set": session_doc}, upsert=True
+    )
+
+    # Return user without password_hash
+    user_data = {k: v for k, v in new_user.items() if k not in ("password_hash", "_id")}
+
+    return {"user": user_data, "token": session_token}
+
+@api_router.post("/auth/login")
+async def login(request: Request):
+    """Login with email and password"""
+    body = await request.json()
+    email = body.get("email", "").strip().lower()
+    password = body.get("password", "")
+
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Email and password are required")
+
+    # Find user
+    user_doc = await db.users.find_one({"email": email})
+
+    if not user_doc:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    # Check password
+    stored_hash = user_doc.get("password_hash")
+    if not stored_hash:
+        raise HTTPException(status_code=401, detail="This account uses Google sign-in. Please use Google to log in.")
+
+    if not bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    # Create session token
+    user_id = user_doc["user_id"]
+    session_token = jwt.encode(
+        {"user_id": user_id, "exp": datetime.now(timezone.utc) + timedelta(days=7)},
+        JWT_SECRET, algorithm=JWT_ALGORITHM
+    )
+
+    session_doc = {
+        "user_id": user_id,
+        "session_token": session_token,
+        "expires_at": datetime.now(timezone.utc) + timedelta(days=7),
+        "created_at": datetime.now(timezone.utc),
+    }
+    await db.user_sessions.update_one(
+        {"user_id": user_id}, {"$set": session_doc}, upsert=True
+    )
+
+    # Return user without password_hash
+    user_data = {k: v for k, v in user_doc.items() if k not in ("password_hash", "_id")}
+
+    return {"user": user_data, "token": session_token}
 
 @api_router.post("/auth/logout")
 async def logout(request: Request, response: Response):

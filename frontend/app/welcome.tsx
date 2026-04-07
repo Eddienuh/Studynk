@@ -2,12 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function WelcomeScreen() {
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <Image 
           source={require('../assets/logo.png')} 
@@ -24,16 +25,23 @@ export default function WelcomeScreen() {
         </View>
 
         <TouchableOpacity 
-          style={styles.getStartedButton} 
-          onPress={() => router.push('/auth-start')}
+          style={styles.primaryButton} 
+          onPress={() => router.push('/register')}
         >
-          <Text style={styles.getStartedText}>Get Started</Text>
+          <Text style={styles.primaryButtonText}>Create Account</Text>
           <Ionicons name="arrow-forward" size={20} color="#FFF" />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.secondaryButton} 
+          onPress={() => router.push('/login')}
+        >
+          <Text style={styles.secondaryButtonText}>I already have an account</Text>
         </TouchableOpacity>
         
         <Text style={styles.footer}>Join 1000+ students finding better study groups</Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -101,7 +109,7 @@ const styles = StyleSheet.create({
     color: '#333',
     flex: 1,
   },
-  getStartedButton: {
+  primaryButton: {
     flexDirection: 'row',
     backgroundColor: '#2DAFE3',
     paddingVertical: 16,
@@ -111,17 +119,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     maxWidth: 400,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    marginBottom: 12,
   },
-  getStartedText: {
+  primaryButtonText: {
     color: '#FFF',
     fontSize: 18,
     fontWeight: '600',
     marginRight: 8,
+  },
+  secondaryButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    maxWidth: 400,
+    borderWidth: 2,
+    borderColor: '#2DAFE3',
+  },
+  secondaryButtonText: {
+    color: '#2DAFE3',
+    fontSize: 16,
+    fontWeight: '600',
   },
   footer: {
     marginTop: 24,

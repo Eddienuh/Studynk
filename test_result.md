@@ -177,6 +177,51 @@ backend:
           agent: "testing"
           comment: "Attendance system fully operational. POST /attendance/checkin creates new sessions and adds users to existing sessions. GET /attendance/streak correctly calculates consecutive day streaks. Both endpoints properly validate group membership before allowing operations."
 
+  - task: "Email/Password Registration"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented POST /api/auth/register endpoint. Accepts name, email, password, gdpr_consent. Uses bcrypt for password hashing. Returns JWT session token and user data. Validates email format, password length >= 6, duplicate email check."
+        - working: true
+          agent: "testing"
+          comment: "Registration endpoint working perfectly. All validation tests passed: ✅ Valid data registration returns user+token ✅ Duplicate email returns 409 ✅ Short password (<6 chars) returns 400 ✅ Missing fields return 400 ✅ Invalid email format returns 400. Password hashing with bcrypt working correctly. JWT token generation successful."
+
+  - task: "Email/Password Login"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented POST /api/auth/login endpoint. Accepts email, password. Verifies bcrypt hash. Returns JWT session token and user data. Distinguishes Google OAuth users (no password_hash) from email/password users."
+        - working: true
+          agent: "testing"
+          comment: "Login endpoint working perfectly. All authentication tests passed: ✅ Valid credentials return user+token ✅ Wrong password returns 401 ✅ Non-existent email returns 401. Bcrypt password verification working correctly. JWT token generation successful. Properly distinguishes between Google OAuth and email/password users."
+
+  - task: "Bearer Token Authentication"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Updated get_current_user to check Authorization Bearer header first, then fallback to cookie. All protected endpoints now support token-based auth."
+        - working: true
+          agent: "testing"
+          comment: "Bearer token authentication working perfectly. All token tests passed: ✅ Bearer token works with /auth/me ✅ Bearer token works with protected endpoints ✅ Missing token returns 401 ✅ Invalid token format returns 401 ✅ Malformed Authorization header returns 401. JWT token validation working correctly. Both Authorization header and cookie fallback implemented properly."
+
   - task: "Health & Root Endpoints"
     implemented: true
     working: true
@@ -223,6 +268,7 @@ metadata:
 test_plan:
   current_focus:
     - "All backend tasks completed successfully"
+    - "New email/password authentication system fully tested"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
@@ -230,3 +276,7 @@ test_plan:
 agent_communication:
     - agent: "testing"
       message: "Comprehensive backend testing completed successfully. All 29 test cases passed (100% success rate). StudyMatch backend API is fully functional with all endpoints working correctly. Authentication, user profiles, matching algorithm, group management, messaging, attendance tracking, and security all verified. The backend is ready for production use. University email validation (.ac.uk) working correctly. MongoDB collections (users, user_sessions, groups, messages, attendance_sessions) all functioning properly."
+    - agent: "main"
+      message: "Added new email/password auth system. New endpoints: POST /api/auth/register (name, email, password, gdpr_consent), POST /api/auth/login (email, password). Both return JWT token. Updated get_current_user to support Bearer token auth (Authorization header). Please test: 1) Register with valid data returns token+user 2) Register with duplicate email returns 409 3) Login with correct password returns token+user 4) Login with wrong password returns 401 5) Bearer token auth works for /api/auth/me 6) Existing endpoints still work with Bearer token. Test credentials: email=test@studymatch.com password=test123456"
+    - agent: "testing"
+      message: "NEW EMAIL/PASSWORD AUTHENTICATION SYSTEM TESTING COMPLETED ✅ All 12 authentication tests passed (100% success rate). Comprehensive testing performed: Registration (valid data, duplicate email, short password, missing fields, invalid email), Login (valid credentials, wrong password, non-existent email), Bearer Token Authentication (valid token, missing token, invalid token, protected endpoints), and Full Authentication Flow. All endpoints working perfectly with proper validation, error handling, and security. JWT token generation and validation working correctly. Bcrypt password hashing implemented properly. The new authentication system is production-ready."

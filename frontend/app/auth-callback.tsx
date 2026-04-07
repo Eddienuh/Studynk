@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
 
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
 export default function AuthCallback() {
   const router = useRouter();
   const { login } = useAuth();
@@ -22,62 +24,49 @@ export default function AuthCallback() {
         
         if (!sessionIdMatch) {
           console.error('No session_id found in hash');
-          alert('Authentication failed: No session ID found. Please try again.');
-          router.replace('/');
+          router.replace('/login');
           return;
         }
 
         const sessionId = sessionIdMatch[1];
         console.log('Session ID extracted:', sessionId.substring(0, 10) + '...');
-        
-        const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
         // Exchange session_id for user data
-        console.log('Calling backend auth session...');
-        const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/auth/session`, {
+        const response = await fetch(`${BACKEND_URL}/api/auth/session`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({ session_id: sessionId }),
         });
-
-        console.log('Backend response status:', response.status);
 
         if (!response.ok) {
           const error = await response.json();
           console.error('Auth error:', error);
-          alert(`Authentication failed: ${error.detail || 'Unknown error'}\n\nPlease try again or contact support.`);
-          router.replace('/');
+          router.replace('/login');
           return;
         }
 
         const data = await response.json();
         console.log('User data received:', data.user?.email);
+
+        // Get the token - either from response or from session_id as fallback
+        const authToken = data.token || sessionId;
         
-        await login(data.user);
+        await login(data.user, authToken);
 
         // Clear the hash from URL
         if (typeof window !== 'undefined') {
           window.history.replaceState(null, '', window.location.pathname);
         }
 
-        console.log('Login successful, redirecting...');
-        
-        // Small delay to ensure state is updated
-        setTimeout(() => {
-          // Redirect based on onboarding status
-          if (data.user.onboarding_completed) {
-            console.log('Redirecting to main app');
-            router.replace('/(tabs)');
-          } else {
-            console.log('Redirecting to onboarding');
-            router.replace('/onboarding');
-          }
-        }, 100);
+        // Redirect based on onboarding status
+        if (data.user.onboarding_completed) {
+          router.replace('/(tabs)');
+        } else {
+          router.replace('/onboarding');
+        }
       } catch (error) {
         console.error('Session processing error:', error);
-        alert('An unexpected error occurred during login. Please try again.');
-        router.replace('/');
+        router.replace('/login');
       }
     };
 
@@ -97,7 +86,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFF',
   },
   text: {
     marginTop: 16,

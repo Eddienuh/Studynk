@@ -12,7 +12,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function GroupsScreen() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [group, setGroup] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -21,7 +21,7 @@ export default function GroupsScreen() {
     try {
       const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
       const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/groups/my-group`, {
-        credentials: 'include',
+        headers: { 'Authorization': `Bearer ${token}` },
       });
       
       if (response.ok) {
@@ -58,7 +58,7 @@ export default function GroupsScreen() {
               const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
               const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/groups/leave`, {
                 method: 'POST',
-                credentials: 'include',
+                headers: { 'Authorization': `Bearer ${token}` },
               });
               
               if (response.ok) {

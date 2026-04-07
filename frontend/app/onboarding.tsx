@@ -20,7 +20,7 @@ const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, token } = useAuth();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     university: '',
@@ -60,8 +60,10 @@ export default function OnboardingScreen() {
       const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
       const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/users/profile`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(formData),
       });
 

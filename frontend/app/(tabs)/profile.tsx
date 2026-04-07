@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
 

@@ -11,7 +11,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [group, setGroup] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [streak, setStreak] = useState(0);
@@ -24,7 +24,7 @@ export default function HomeScreen() {
       
       // Fetch group
       const groupRes = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/groups/my-group`, {
-        credentials: 'include',
+        headers: { 'Authorization': `Bearer ${token}` },
       });
       if (groupRes.ok) {
         const data = await groupRes.json();
@@ -34,7 +34,7 @@ export default function HomeScreen() {
 
       // Fetch streak
       const streakRes = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/attendance/streak`, {
-        credentials: 'include',
+        headers: { 'Authorization': `Bearer ${token}` },
       });
       if (streakRes.ok) {
         const data = await streakRes.json();
@@ -61,7 +61,7 @@ export default function HomeScreen() {
       const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
       const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/matching/find-matches`, {
         method: 'POST',
-        credentials: 'include',
+        headers: { 'Authorization': `Bearer ${token}` },
       });
 
       const data = await response.json();
@@ -84,8 +84,7 @@ export default function HomeScreen() {
       const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
       const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/attendance/checkin`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({}),
       });
 
