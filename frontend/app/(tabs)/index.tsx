@@ -6,12 +6,15 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const { user, token } = useAuth();
+  const router = useRouter();
   const [group, setGroup] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [streak, setStreak] = useState(0);
@@ -188,21 +191,37 @@ export default function HomeScreen() {
       <View style={styles.quickActions}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsGrid}>
-          <TouchableOpacity style={styles.actionCard}>
+          <TouchableOpacity 
+            style={styles.actionCard}
+            onPress={() => router.push('/onboarding')}
+            activeOpacity={0.7}
+          >
             <Ionicons name="calendar" size={32} color="#2DAFE3" />
             <Text style={styles.actionText}>Schedule</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionCard}>
-            <Ionicons name="stats-chart" size={32} color="#2DAFE3" />
-            <Text style={styles.actionText}>Progress</Text>
+          <TouchableOpacity 
+            style={styles.actionCard}
+            onPress={() => router.push('/(tabs)/groups')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="people" size={32} color="#2DAFE3" />
+            <Text style={styles.actionText}>My Group</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionCard}>
-            <Ionicons name="location" size={32} color="#2DAFE3" />
-            <Text style={styles.actionText}>Study Spots</Text>
+          <TouchableOpacity 
+            style={styles.actionCard}
+            onPress={() => router.push('/(tabs)/messages')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chatbubbles" size={32} color="#2DAFE3" />
+            <Text style={styles.actionText}>Messages</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionCard}>
-            <Ionicons name="help-circle" size={32} color="#2DAFE3" />
-            <Text style={styles.actionText}>Help</Text>
+          <TouchableOpacity 
+            style={styles.actionCard}
+            onPress={() => router.push('/(tabs)/profile')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="person" size={32} color="#2DAFE3" />
+            <Text style={styles.actionText}>Profile</Text>
           </TouchableOpacity>
         </View>
       </View>

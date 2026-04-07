@@ -7,16 +7,23 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export default function ProfileScreen() {
-  const { user, logout, token } = useAuth();
+  const { user, logout, token, refreshUser } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
+  const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -32,16 +39,167 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'This will permanently delete your account and all your data. This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            // Second confirmation
+            Alert.alert(
+              'Are you absolutely sure?',
+              'All your study groups, messages, and profile data will be permanently erased.',
+              [
+                { text: 'Keep Account', style: 'cancel' },
+                {
+                  text: 'Yes, Delete Everything',
+                  style: 'destructive',
+                  onPress: performDeleteAccount,
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  };
+
+  const performDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/auth/delete-account`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        await logout();
+        router.replace('/welcome');
+      } else {
+        const data = await response.json();
+        Alert.alert('Error', data.detail || 'Failed to delete account');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Network error. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handlePickPhoto = async () => {
+    // Request permission
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'Please allow access to your photo library to change your profile picture.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0].base64) {
+      await uploadPhoto(result.assets[0].base64, result.assets[0].mimeType || 'image/jpeg');
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'Please allow camera access to take a profile picture.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0].base64) {
+      await uploadPhoto(result.assets[0].base64, result.assets[0].mimeType || 'image/jpeg');
+    }
+  };
+
+  const uploadPhoto = async (base64Data: string, mimeType: string) => {
+    setUploading(true);
+    try {
+      const photoUri = `data:${mimeType};base64,${base64Data}`;
+      const response = await fetch(`${BACKEND_URL}/api/users/upload-photo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ photo: photoUri }),
+      });
+
+      if (response.ok) {
+        await refreshUser();
+        Alert.alert('Success', 'Profile photo updated!');
+      } else {
+        const data = await response.json();
+        Alert.alert('Error', data.detail || 'Failed to upload photo');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Network error. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const showPhotoOptions = () => {
+    Alert.alert('Profile Photo', 'Choose how to update your photo', [
+      { text: 'Take Photo', onPress: handleTakePhoto },
+      { text: 'Choose from Library', onPress: handlePickPhoto },
+      ...(user?.profile_photo ? [{ text: 'Remove Photo', style: 'destructive' as const, onPress: removePhoto }] : []),
+      { text: 'Cancel', style: 'cancel' as const },
+    ]);
+  };
+
+  const removePhoto = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/users/upload-photo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ photo: '' }),
+      });
+      if (response.ok) {
+        await refreshUser();
+      }
+    } catch (error) {
+      console.error('Remove photo error:', error);
+    }
+  };
+
   const handleEditProfile = () => {
     router.push('/onboarding');
   };
 
+  const profilePhoto = user?.profile_photo || user?.picture;
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.avatarContainer}>
-          {user?.picture ? (
-            <Image source={{ uri: user.picture }} style={styles.avatar} />
+        <TouchableOpacity onPress={showPhotoOptions} style={styles.avatarContainer}>
+          {uploading ? (
+            <View style={styles.avatarPlaceholder}>
+              <ActivityIndicator size="large" color="#2DAFE3" />
+            </View>
+          ) : profilePhoto ? (
+            <Image source={{ uri: profilePhoto }} style={styles.avatar} />
           ) : (
             <View style={styles.avatarPlaceholder}>
               <Text style={styles.avatarText}>
@@ -49,9 +207,15 @@ export default function ProfileScreen() {
               </Text>
             </View>
           )}
-        </View>
+          <View style={styles.cameraOverlay}>
+            <Ionicons name="camera" size={16} color="#FFF" />
+          </View>
+        </TouchableOpacity>
         <Text style={styles.name}>{user?.name}</Text>
         <Text style={styles.email}>{user?.email}</Text>
+        <TouchableOpacity onPress={showPhotoOptions} style={styles.changePhotoLink}>
+          <Text style={styles.changePhotoText}>Change Photo</Text>
+        </TouchableOpacity>
       </View>
 
       {user?.university && (
@@ -120,9 +284,9 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.settingsItem}>
-            <Ionicons name="notifications-outline" size={24} color="#2DAFE3" />
-            <Text style={styles.settingsText}>{t('profile.settings.notifications')}</Text>
+          <TouchableOpacity style={styles.settingsItem} onPress={showPhotoOptions}>
+            <Ionicons name="camera-outline" size={24} color="#2DAFE3" />
+            <Text style={styles.settingsText}>Change Profile Photo</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
           
@@ -139,12 +303,6 @@ export default function ProfileScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingsItem}>
-            <Ionicons name="help-circle-outline" size={24} color="#2DAFE3" />
-            <Text style={styles.settingsText}>{t('profile.settings.help')}</Text>
-            <Ionicons name="chevron-forward" size={20} color="#CCC" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.settingsItem}>
             <Ionicons name="information-circle-outline" size={24} color="#2DAFE3" />
             <Text style={styles.settingsText}>{t('profile.settings.about')}</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
@@ -157,9 +315,19 @@ export default function ProfileScreen() {
         <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount} disabled={deleting}>
+        {deleting ? (
+          <ActivityIndicator color="#E53935" size="small" />
+        ) : (
+          <>
+            <Ionicons name="trash-outline" size={18} color="#E53935" />
+            <Text style={styles.deleteText}>Delete Account</Text>
+          </>
+        )}
+      </TouchableOpacity>
+
       <View style={styles.footer}>
         <Text style={styles.footerText}>StudyMatch v1.0</Text>
-        <Text style={styles.footerText}>Made with ❤️ for students</Text>
       </View>
 
       <View style={{ height: 32 }} />
@@ -179,7 +347,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatarContainer: {
-    marginBottom: 16,
+    marginBottom: 12,
+    position: 'relative',
   },
   avatar: {
     width: 100,
@@ -200,6 +369,28 @@ const styles = StyleSheet.create({
     fontSize: 40,
     fontWeight: 'bold',
     color: '#2DAFE3',
+  },
+  cameraOverlay: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
+  changePhotoLink: {
+    marginTop: 4,
+    paddingVertical: 4,
+  },
+  changePhotoText: {
+    color: '#E0F7FA',
+    fontSize: 14,
+    fontWeight: '500',
   },
   name: {
     fontSize: 24,
@@ -280,6 +471,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#E53935',
     marginLeft: 8,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 12,
+    minHeight: 48,
+  },
+  deleteText: {
+    fontSize: 14,
+    color: '#E53935',
+    marginLeft: 6,
   },
   footer: {
     alignItems: 'center',

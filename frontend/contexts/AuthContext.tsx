@@ -9,6 +9,7 @@ interface User {
   email: string;
   name: string;
   picture?: string;
+  profile_photo?: string;
   university?: string;
   course?: string;
   study_style?: string;

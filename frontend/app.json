@@ -10,7 +10,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.studymatch.app"
+      "bundleIdentifier": "com.studymatch.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Take a profile photo for your account",
+        "NSPhotoLibraryUsageDescription": "Choose a profile photo from your library"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +22,8 @@
         "backgroundColor": "#2DAFE3"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.studymatch.app"
+      "package": "com.studymatch.app",
+      "permissions": ["CAMERA", "READ_MEDIA_IMAGES"]
     },
     "web": {
       "bundler": "metro",
@@ -36,7 +41,14 @@
           "backgroundColor": "#2DAFE3"
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Choose a profile photo from your library",
+          "cameraPermission": "Take a profile photo for your account"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

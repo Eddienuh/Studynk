@@ -177,6 +177,36 @@ backend:
           agent: "testing"
           comment: "Attendance system fully operational. POST /attendance/checkin creates new sessions and adds users to existing sessions. GET /attendance/streak correctly calculates consecutive day streaks. Both endpoints properly validate group membership before allowing operations."
 
+  - task: "Delete Account Endpoint (GDPR)"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented DELETE /api/auth/delete-account endpoint. Removes user from groups (disbands if <2 members), deletes messages, attendance records, sessions, and user document. Double confirmation UI on frontend. GDPR compliant."
+        - working: true
+          agent: "testing"
+          comment: "DELETE /api/auth/delete-account endpoint working perfectly. ✅ Authenticated deletion successful with proper cleanup ✅ User data completely removed (verified by failed login attempt) ✅ Unauthorized access correctly returns 401. GDPR compliance verified - all user data including groups, messages, attendance records, and sessions properly deleted."
+
+  - task: "Profile Photo Upload"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented POST /api/users/upload-photo endpoint. Accepts base64 photo data (max 5MB). Frontend uses expo-image-picker for camera and library. Profile photo displayed in profile screen header. Camera overlay icon for quick access."
+        - working: true
+          agent: "testing"
+          comment: "POST /api/users/upload-photo endpoint working perfectly. ✅ Photo upload with valid auth successful ✅ Photo data persists in user profile (verified via /auth/me) ✅ Missing photo data returns 400 ✅ Unauthorized access returns 401. Base64 photo handling working correctly with proper size validation."
+
   - task: "Email/Password Registration"
     implemented: true
     working: true
@@ -269,6 +299,8 @@ test_plan:
   current_focus:
     - "All backend tasks completed successfully"
     - "New email/password authentication system fully tested"
+    - "New GDPR delete account endpoint tested"
+    - "New profile photo upload endpoint tested"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
@@ -280,3 +312,5 @@ agent_communication:
       message: "Added new email/password auth system. New endpoints: POST /api/auth/register (name, email, password, gdpr_consent), POST /api/auth/login (email, password). Both return JWT token. Updated get_current_user to support Bearer token auth (Authorization header). Please test: 1) Register with valid data returns token+user 2) Register with duplicate email returns 409 3) Login with correct password returns token+user 4) Login with wrong password returns 401 5) Bearer token auth works for /api/auth/me 6) Existing endpoints still work with Bearer token. Test credentials: email=test@studymatch.com password=test123456"
     - agent: "testing"
       message: "NEW EMAIL/PASSWORD AUTHENTICATION SYSTEM TESTING COMPLETED ✅ All 12 authentication tests passed (100% success rate). Comprehensive testing performed: Registration (valid data, duplicate email, short password, missing fields, invalid email), Login (valid credentials, wrong password, non-existent email), Bearer Token Authentication (valid token, missing token, invalid token, protected endpoints), and Full Authentication Flow. All endpoints working perfectly with proper validation, error handling, and security. JWT token generation and validation working correctly. Bcrypt password hashing implemented properly. The new authentication system is production-ready."
+    - agent: "testing"
+      message: "NEW ENDPOINTS TESTING COMPLETED ✅ All 6 new endpoint tests passed (100% success rate). DELETE /api/auth/delete-account: ✅ Authenticated deletion with complete data cleanup ✅ Proper 401 for unauthorized access ✅ GDPR compliance verified. POST /api/users/upload-photo: ✅ Photo upload with auth successful ✅ Photo persistence verified ✅ Proper validation (400 for missing data, 401 for no auth). Existing endpoints verification: ✅ Register, Login, and /auth/me all working correctly. All new endpoints are production-ready."

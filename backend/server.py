@@ -382,6 +382,70 @@ async def logout(request: Request, response: Response):
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out successfully"}
 
+@api_router.delete("/auth/delete-account")
+async def delete_account(request: Request, response: Response):
+    """Delete user account and all associated data (GDPR compliance)"""
+    user = await get_current_user(request)
+    user_id = user["user_id"]
+    
+    # Remove user from any group
+    group_doc = await db.groups.find_one({"members": user_id})
+    if group_doc:
+        new_members = [m for m in group_doc["members"] if m != user_id]
+        if len(new_members) < 2:
+            # Disband group if less than 2 members
+            await db.groups.delete_one({"group_id": group_doc["group_id"]})
+            for remaining in new_members:
+                await db.users.update_one(
+                    {"user_id": remaining},
+                    {"$set": {"group_id": None, "matching_status": "pending"}}
+                )
+        else:
+            await db.groups.update_one(
+                {"group_id": group_doc["group_id"]},
+                {"$set": {"members": new_members}}
+            )
+    
+    # Delete all user messages
+    await db.messages.delete_many({"sender_id": user_id})
+    
+    # Delete attendance records
+    await db.attendance_sessions.update_many(
+        {"attendees": user_id},
+        {"$pull": {"attendees": user_id}}
+    )
+    
+    # Delete sessions
+    await db.user_sessions.delete_many({"user_id": user_id})
+    
+    # Delete user document
+    await db.users.delete_one({"user_id": user_id})
+    
+    response.delete_cookie(key="session_token", path="/")
+    
+    return {"message": "Account and all associated data deleted successfully"}
+
+@api_router.post("/users/upload-photo")
+async def upload_photo(request: Request):
+    """Upload profile photo as base64"""
+    user = await get_current_user(request)
+    body = await request.json()
+    
+    photo_data = body.get("photo")
+    if not photo_data:
+        raise HTTPException(status_code=400, detail="Photo data required")
+    
+    # Validate base64 size (max ~5MB)
+    if len(photo_data) > 7_000_000:
+        raise HTTPException(status_code=400, detail="Photo too large. Max 5MB.")
+    
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"profile_photo": photo_data}}
+    )
+    
+    return {"message": "Photo uploaded successfully", "profile_photo": photo_data}
+
 # ==================== SUBSCRIPTION HELPER FUNCTIONS ====================
 
 def generate_referral_code(user_id: str) -> str:
