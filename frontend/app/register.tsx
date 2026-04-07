@@ -171,21 +171,23 @@ export default function RegisterScreen() {
               />
             </View>
 
-            <TouchableOpacity
-              style={styles.consentRow}
-              onPress={() => setGdprConsent(!gdprConsent)}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.checkbox, gdprConsent && styles.checkboxChecked]}>
-                {gdprConsent && <Ionicons name="checkmark" size={14} color="#FFF" />}
-              </View>
+            <View style={styles.consentRow}>
+              <TouchableOpacity
+                onPress={() => setGdprConsent(!gdprConsent)}
+                activeOpacity={0.7}
+                style={styles.checkboxTouchable}
+              >
+                <View style={[styles.checkbox, gdprConsent && styles.checkboxChecked]}>
+                  {gdprConsent && <Ionicons name="checkmark" size={14} color="#FFF" />}
+                </View>
+              </TouchableOpacity>
               <Text style={styles.consentText}>
                 I agree to the{' '}
                 <Text style={styles.linkText} onPress={() => router.push('/privacy')}>Privacy Policy</Text>
                 {' '}and{' '}
                 <Text style={styles.linkText} onPress={() => router.push('/terms')}>Terms of Service</Text>
               </Text>
-            </TouchableOpacity>
+            </View>
 
             <TouchableOpacity
               style={[styles.registerButton, (!gdprConsent || loading) && styles.registerButtonDisabled]}
@@ -304,6 +306,10 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginTop: 20,
     marginBottom: 24,
+  },
+  checkboxTouchable: {
+    padding: 4,
+    marginRight: 6,
   },
   checkbox: {
     width: 22,
