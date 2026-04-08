@@ -11,6 +11,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import ReviewModal from '../../components/ReviewModal';
 
 export default function HomeScreen() {
   const { user, token } = useAuth();
@@ -20,6 +21,7 @@ export default function HomeScreen() {
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -92,11 +94,35 @@ export default function HomeScreen() {
       });
 
       if (response.ok) {
-        alert('✅ Checked in successfully!');
+        const data = await response.json();
+        Alert.alert('Checked In', `Study session #${data.total_checkins} logged!`);
         await fetchData();
+
+        // Show review modal if backend says we should prompt
+        if (data.should_prompt_review) {
+          setTimeout(() => setShowReviewModal(true), 600);
+        }
       }
     } catch (error) {
       console.error('Check-in error:', error);
+    }
+  };
+
+  const handleReviewSubmit = async (rating: number, feedback: string) => {
+    const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+    const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/reviews/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ rating, feedback }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      Alert.alert('Error', data.detail || 'Failed to submit review');
+      throw new Error('Submit failed');
     }
   };
 
@@ -233,6 +259,13 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Review Modal */}
+      <ReviewModal
+        visible={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        onSubmit={handleReviewSubmit}
+      />
     </ScrollView>
   );
 }

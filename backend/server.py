@@ -1012,7 +1012,28 @@ async def checkin(request: Request, session_data: Dict[str, Any]):
             {"$addToSet": {"attendees": user["user_id"]}}
         )
     
-    return {"message": "Checked in successfully", "session_id": session_id}
+    # Increment total check-in count for the user
+    total_checkins = user.get("total_checkins", 0) + 1
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"total_checkins": total_checkins}}
+    )
+    
+    # Determine if review prompt should be shown
+    # Show after 1st check-in, then every 5 after that (6th, 11th, 16th...)
+    last_review_checkin = user.get("last_review_checkin", 0)
+    should_prompt_review = False
+    if total_checkins == 1:
+        should_prompt_review = True
+    elif total_checkins > 1 and (total_checkins - 1) % 5 == 0 and total_checkins > last_review_checkin:
+        should_prompt_review = True
+    
+    return {
+        "message": "Checked in successfully",
+        "session_id": session_id,
+        "total_checkins": total_checkins,
+        "should_prompt_review": should_prompt_review,
+    }
 
 @api_router.get("/attendance/streak")
 async def get_streak(request: Request):
@@ -1049,6 +1070,65 @@ async def get_streak(request: Request):
                 break
     
     return {"streak": streak}
+
+
+# ==================== APP REVIEW ROUTES ====================
+
+@api_router.post("/reviews/submit")
+async def submit_review(request: Request):
+    """Submit a star review for the StudyMatch app"""
+    user = await get_current_user(request)
+    body = await request.json()
+
+    rating = body.get("rating")
+    feedback = body.get("feedback", "").strip()
+
+    if not rating or not isinstance(rating, int) or rating < 1 or rating > 5:
+        raise HTTPException(status_code=400, detail="Rating must be an integer between 1 and 5")
+
+    review = {
+        "review_id": f"rev_{uuid.uuid4().hex[:12]}",
+        "user_id": user["user_id"],
+        "rating": rating,
+        "feedback": feedback if feedback else None,
+        "total_checkins_at_review": user.get("total_checkins", 0),
+        "created_at": datetime.now(timezone.utc),
+    }
+
+    await db.reviews.insert_one(review)
+
+    # Record when the user last reviewed so we don't re-prompt immediately
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"last_review_checkin": user.get("total_checkins", 0)}}
+    )
+
+    review.pop("_id", None)
+    return {"message": "Thank you for your review!", "review": review}
+
+
+@api_router.get("/reviews/stats")
+async def get_review_stats(request: Request):
+    """Get aggregate review stats (internal analytics)"""
+    user = await get_current_user(request)
+
+    total_reviews = await db.reviews.count_documents({})
+    pipeline = [{"$group": {"_id": None, "avg_rating": {"$avg": "$rating"}}}]
+    result = await db.reviews.aggregate(pipeline).to_list(1)
+    avg_rating = round(result[0]["avg_rating"], 1) if result else 0
+
+    # Get user's own reviews
+    my_reviews = await db.reviews.find(
+        {"user_id": user["user_id"]},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(10)
+
+    return {
+        "total_reviews": total_reviews,
+        "average_rating": avg_rating,
+        "my_reviews": my_reviews,
+    }
+
 
 # ==================== HEALTH CHECK ====================
 
