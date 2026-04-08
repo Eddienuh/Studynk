@@ -69,7 +69,7 @@ export default function OnboardingScreen() {
 
       if (response.ok) {
         await refreshUser();
-        router.replace('/(tabs)');
+        router.replace('/choose-plan');
       } else {
         alert('Failed to save profile');
       }

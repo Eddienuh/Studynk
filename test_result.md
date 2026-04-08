@@ -306,6 +306,18 @@ backend:
           agent: "testing"
           comment: "Authorization working excellently. All protected endpoints correctly return 401 Unauthorized when accessed without valid session tokens. Session validation through both cookies and Authorization headers working. University email validation (.ac.uk domain) properly implemented."
 
+  - task: "Stripe Subscription Endpoints"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "All Stripe subscription endpoints working perfectly. ✅ POST /api/stripe/create-checkout-session (authenticated) returns valid Stripe checkout URL and session ID ✅ POST /api/stripe/create-checkout-session (unauthenticated) correctly returns 401 ✅ Stripe customer creation working - users get stripe_customer_id field after checkout session creation ✅ POST /api/stripe/confirm-pro with invalid session_id correctly returns 400 ✅ POST /api/stripe/confirm-pro (unauthenticated) correctly returns 401 ✅ GET /api/stripe/checkout-success with invalid session_id correctly returns 400 ✅ GET /api/subscription/status returns correct subscription data (tier, is_pro, referral_code). All 8 Stripe endpoint tests passed (100% success rate). Stripe integration fully functional and ready for production."
+
 frontend:
   - task: "Frontend Testing"
     implemented: false
@@ -332,6 +344,7 @@ test_plan:
     - "New GDPR delete account endpoint tested"
     - "New profile photo upload endpoint tested"
     - "New Study Locations endpoints fully tested"
+    - "New Stripe subscription endpoints fully tested"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
@@ -347,3 +360,5 @@ agent_communication:
       message: "NEW ENDPOINTS TESTING COMPLETED ✅ All 6 new endpoint tests passed (100% success rate). DELETE /api/auth/delete-account: ✅ Authenticated deletion with complete data cleanup ✅ Proper 401 for unauthorized access ✅ GDPR compliance verified. POST /api/users/upload-photo: ✅ Photo upload with auth successful ✅ Photo persistence verified ✅ Proper validation (400 for missing data, 401 for no auth). Existing endpoints verification: ✅ Register, Login, and /auth/me all working correctly. All new endpoints are production-ready."
     - agent: "testing"
       message: "STUDY LOCATIONS ENDPOINTS TESTING COMPLETED ✅ All 10 location endpoint tests passed (100% success rate). GET /api/locations/search: ✅ Returns all 8 seeded locations with required fields ✅ Query filtering (?q=Library) works correctly ✅ Type filtering (?type=cafe) works correctly ✅ Combined filters work correctly. GET /api/locations/{location_id}: ✅ Valid IDs return location details with busyness data ✅ Invalid IDs return 404. POST /api/locations/share: ✅ Authentication required (401 for no auth) ✅ Validates location_id (400 for missing, 404 for invalid) ✅ Validates group membership (400 for users not in groups). All Study Locations endpoints are production-ready."
+    - agent: "testing"
+      message: "STRIPE SUBSCRIPTION ENDPOINTS TESTING COMPLETED ✅ All 8 Stripe endpoint tests passed (100% success rate). POST /api/stripe/create-checkout-session: ✅ Authenticated requests return valid Stripe checkout URL and session ID ✅ Unauthenticated requests correctly return 401. Stripe Customer Creation: ✅ Users automatically get stripe_customer_id field after checkout session creation. POST /api/stripe/confirm-pro: ✅ Invalid session_id correctly returns 400 ✅ Unauthenticated requests correctly return 401. GET /api/stripe/checkout-success: ✅ Invalid session_id correctly returns 400. GET /api/subscription/status: ✅ Returns correct subscription data (tier, is_pro, referral_code). All Stripe integration endpoints are production-ready with proper authentication, validation, and error handling."

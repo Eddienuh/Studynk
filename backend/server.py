@@ -15,6 +15,7 @@ import requests
 import re
 import bcrypt
 import jwt
+import stripe
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -22,6 +23,8 @@ load_dotenv(ROOT_DIR / '.env')
 JWT_SECRET = os.environ.get('JWT_SECRET', 'studymatch-secret-key-change-in-production')
 JWT_ALGORITHM = "HS256"
 MAPS_API_KEY = os.environ.get('Maps_API_KEY', '')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
+stripe.api_key = STRIPE_SECRET_KEY
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -1380,6 +1383,143 @@ async def place_details(place_id: str):
     except Exception as e:
         logger.error(f"Place Details exception: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch place details")
+
+# ==================== STRIPE SUBSCRIPTION ROUTES ====================
+
+@api_router.post("/stripe/create-checkout-session")
+async def create_checkout_session(request: Request):
+    """Create a Stripe Checkout Session for Pro subscription with 30-day trial"""
+    user = await get_current_user(request)
+    body = await request.json()
+    success_url = body.get("success_url", "")
+    cancel_url = body.get("cancel_url", "")
+
+    if not STRIPE_SECRET_KEY:
+        raise HTTPException(status_code=500, detail="Stripe not configured")
+
+    try:
+        # Get or create Stripe customer
+        stripe_customer_id = user.get("stripe_customer_id")
+        if not stripe_customer_id:
+            customer = stripe.Customer.create(
+                email=user["email"],
+                name=user.get("name", ""),
+                metadata={"user_id": user["user_id"]},
+            )
+            stripe_customer_id = customer.id
+            await db.users.update_one(
+                {"user_id": user["user_id"]},
+                {"$set": {"stripe_customer_id": stripe_customer_id}}
+            )
+
+        # Create or find price for StudyMatch Pro (£3.99/mo)
+        prices = stripe.Price.list(
+            lookup_keys=["studymatch_pro_monthly"],
+            active=True,
+            limit=1,
+        )
+
+        if prices.data:
+            price_id = prices.data[0].id
+        else:
+            # Create product and price
+            product = stripe.Product.create(
+                name="StudyMatch Pro",
+                description="Premium study group features: advanced matching, unlimited groups, priority support",
+            )
+            price = stripe.Price.create(
+                product=product.id,
+                unit_amount=399,
+                currency="gbp",
+                recurring={"interval": "month"},
+                lookup_key="studymatch_pro_monthly",
+            )
+            price_id = price.id
+
+        # Create checkout session with 30-day trial
+        session = stripe.checkout.Session.create(
+            customer=stripe_customer_id,
+            mode="subscription",
+            payment_method_types=["card"],
+            line_items=[{"price": price_id, "quantity": 1}],
+            subscription_data={"trial_period_days": 30},
+            success_url=success_url + "?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url=cancel_url,
+            metadata={"user_id": user["user_id"]},
+        )
+
+        return {"checkout_url": session.url, "session_id": session.id}
+
+    except stripe.StripeError as e:
+        logger.error(f"Stripe error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@api_router.get("/stripe/checkout-success")
+async def checkout_success(session_id: str, request: Request):
+    """Handle successful Stripe checkout — update user to Pro"""
+    if not STRIPE_SECRET_KEY:
+        raise HTTPException(status_code=500, detail="Stripe not configured")
+
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+
+        if session.payment_status in ("paid", "no_payment_required"):
+            user_id = session.metadata.get("user_id")
+            if user_id:
+                # Update user to pro
+                await db.users.update_one(
+                    {"user_id": user_id},
+                    {"$set": {
+                        "subscription_tier": "pro",
+                        "subscription_status": "active",
+                        "stripe_subscription_id": session.subscription,
+                        "pro_started_at": datetime.now(timezone.utc),
+                    }}
+                )
+                return {"status": "success", "subscription_tier": "pro"}
+
+        return {"status": "pending", "payment_status": session.payment_status}
+
+    except stripe.StripeError as e:
+        logger.error(f"Stripe checkout verify error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@api_router.post("/stripe/confirm-pro")
+async def confirm_pro(request: Request):
+    """Confirm and activate Pro status after checkout (called from frontend)"""
+    user = await get_current_user(request)
+    body = await request.json()
+    session_id = body.get("session_id")
+
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id required")
+
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+
+        # Verify the session belongs to this user
+        if session.metadata.get("user_id") != user["user_id"]:
+            raise HTTPException(status_code=403, detail="Session mismatch")
+
+        if session.payment_status in ("paid", "no_payment_required"):
+            await db.users.update_one(
+                {"user_id": user["user_id"]},
+                {"$set": {
+                    "subscription_tier": "pro",
+                    "subscription_status": "active",
+                    "stripe_subscription_id": session.subscription,
+                    "pro_started_at": datetime.now(timezone.utc),
+                }}
+            )
+            return {"status": "success", "subscription_tier": "pro"}
+
+        return {"status": "pending", "payment_status": session.payment_status}
+
+    except stripe.StripeError as e:
+        logger.error(f"Stripe confirm error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 app.include_router(api_router)

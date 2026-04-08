@@ -42,7 +42,10 @@ export default function TermsScreen() {
 
         <Text style={styles.sectionTitle}>5. Subscriptions & Payments</Text>
         <Text style={styles.paragraph}>
-          StudyMatch offers free and Pro subscription tiers. Pro subscriptions are billed through Stripe. You may cancel at any time, but refunds are subject to our refund policy.
+          StudyMatch offers Basic (free) and Pro subscription tiers. Pro subscriptions are billed at £3.99 per month through Stripe and include a 30-day free trial.
+        </Text>
+        <Text style={styles.paragraph}>
+          Subscription auto-renews at £3.99/month unless cancelled at least 24 hours before the trial or current billing period ends. You may cancel at any time through your account settings. Refunds are subject to our refund policy.
         </Text>
 
         <Text style={styles.sectionTitle}>6. Privacy</Text>

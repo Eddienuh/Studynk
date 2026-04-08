@@ -350,7 +350,290 @@ class StudyLocationsAPITester:
         
         return failed_tests == 0
 
+class StripeAPITester:
+    def __init__(self):
+        self.session = requests.Session()
+        self.auth_token = None
+        self.user_data = None
+        self.test_results = []
+        
+    def log_test(self, test_name, success, details=""):
+        """Log test results"""
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status} {test_name}")
+        if details:
+            print(f"   {details}")
+        self.test_results.append({
+            "test": test_name,
+            "success": success,
+            "details": details
+        })
+        
+    def register_test_user(self):
+        """Register a unique test user for Stripe testing"""
+        print("\n=== STRIPE TESTING - USER REGISTRATION ===")
+        
+        # Generate unique email to avoid duplicates
+        import uuid
+        unique_id = uuid.uuid4().hex[:8]
+        test_email = f"stripe_test_{unique_id}@test.com"
+        test_password = "test123456"
+        test_name = "Stripe Test User"
+        
+        register_data = {
+            "name": test_name,
+            "email": test_email,
+            "password": test_password,
+            "gdpr_consent": True
+        }
+        
+        try:
+            response = self.session.post(f"{BACKEND_URL}/auth/register", json=register_data)
+            if response.status_code in [200, 201]:
+                data = response.json()
+                self.auth_token = data.get("token")
+                self.user_data = data.get("user")
+                self.log_test("User Registration for Stripe Testing", True, 
+                             f"User {test_email} registered successfully")
+                return True
+            else:
+                self.log_test("User Registration for Stripe Testing", False, 
+                             f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("User Registration for Stripe Testing", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_create_checkout_session_authenticated(self):
+        """Test POST /api/stripe/create-checkout-session with authentication"""
+        print("\n=== TESTING CREATE CHECKOUT SESSION (AUTHENTICATED) ===")
+        
+        headers = {
+            "Authorization": f"Bearer {self.auth_token}",
+            "Content-Type": "application/json"
+        }
+        
+        checkout_data = {
+            "success_url": "http://localhost:3000/pro-welcome",
+            "cancel_url": "http://localhost:3000/choose-plan"
+        }
+        
+        try:
+            response = self.session.post(f"{BACKEND_URL}/stripe/create-checkout-session", 
+                                       json=checkout_data, headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                checkout_url = data.get("checkout_url")
+                session_id = data.get("session_id")
+                
+                if checkout_url and session_id and "checkout.stripe.com" in checkout_url:
+                    self.log_test("Create Checkout Session (Authenticated)", True, 
+                                 f"Checkout URL: {checkout_url[:50]}..., Session ID: {session_id}")
+                    return session_id
+                else:
+                    self.log_test("Create Checkout Session (Authenticated)", False, 
+                                 f"Invalid response format: {data}")
+                    return None
+            else:
+                self.log_test("Create Checkout Session (Authenticated)", False, 
+                             f"Status: {response.status_code}, Response: {response.text}")
+                return None
+        except Exception as e:
+            self.log_test("Create Checkout Session (Authenticated)", False, f"Exception: {str(e)}")
+            return None
+    
+    def test_create_checkout_session_unauthenticated(self):
+        """Test POST /api/stripe/create-checkout-session without authentication"""
+        print("\n=== TESTING CREATE CHECKOUT SESSION (UNAUTHENTICATED) ===")
+        
+        checkout_data = {
+            "success_url": "http://localhost:3000/pro-welcome",
+            "cancel_url": "http://localhost:3000/choose-plan"
+        }
+        
+        try:
+            response = self.session.post(f"{BACKEND_URL}/stripe/create-checkout-session", 
+                                       json=checkout_data)
+            
+            if response.status_code == 401:
+                self.log_test("Create Checkout Session (No Auth)", True, 
+                             "Correctly returned 401 Unauthorized")
+            else:
+                self.log_test("Create Checkout Session (No Auth)", False, 
+                             f"Expected 401, got {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Create Checkout Session (No Auth)", False, f"Exception: {str(e)}")
+    
+    def test_stripe_customer_creation(self):
+        """Test that Stripe customer was created and added to user"""
+        print("\n=== TESTING STRIPE CUSTOMER CREATION ===")
+        
+        headers = {
+            "Authorization": f"Bearer {self.auth_token}",
+            "Content-Type": "application/json"
+        }
+        
+        try:
+            response = self.session.get(f"{BACKEND_URL}/auth/me", headers=headers)
+            
+            if response.status_code == 200:
+                user_data = response.json()
+                stripe_customer_id = user_data.get("stripe_customer_id")
+                
+                if stripe_customer_id and stripe_customer_id.startswith("cus_"):
+                    self.log_test("Stripe Customer Creation", True, 
+                                 f"User has stripe_customer_id: {stripe_customer_id}")
+                else:
+                    self.log_test("Stripe Customer Creation", False, 
+                                 "User does not have valid stripe_customer_id field")
+            else:
+                self.log_test("Stripe Customer Creation", False, 
+                             f"Failed to get user data: {response.status_code}")
+        except Exception as e:
+            self.log_test("Stripe Customer Creation", False, f"Exception: {str(e)}")
+    
+    def test_confirm_pro_invalid_session(self):
+        """Test POST /api/stripe/confirm-pro with invalid session_id"""
+        print("\n=== TESTING CONFIRM PRO (INVALID SESSION) ===")
+        
+        headers = {
+            "Authorization": f"Bearer {self.auth_token}",
+            "Content-Type": "application/json"
+        }
+        
+        invalid_data = {"session_id": "invalid_session_id"}
+        
+        try:
+            response = self.session.post(f"{BACKEND_URL}/stripe/confirm-pro", 
+                                       json=invalid_data, headers=headers)
+            
+            if response.status_code == 400:
+                self.log_test("Confirm Pro (Invalid Session)", True, 
+                             "Correctly returned 400 for invalid session_id")
+            else:
+                self.log_test("Confirm Pro (Invalid Session)", False, 
+                             f"Expected 400, got {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Confirm Pro (Invalid Session)", False, f"Exception: {str(e)}")
+    
+    def test_confirm_pro_unauthenticated(self):
+        """Test POST /api/stripe/confirm-pro without authentication"""
+        print("\n=== TESTING CONFIRM PRO (UNAUTHENTICATED) ===")
+        
+        invalid_data = {"session_id": "invalid_session_id"}
+        
+        try:
+            response = self.session.post(f"{BACKEND_URL}/stripe/confirm-pro", json=invalid_data)
+            
+            if response.status_code == 401:
+                self.log_test("Confirm Pro (No Auth)", True, 
+                             "Correctly returned 401 Unauthorized")
+            else:
+                self.log_test("Confirm Pro (No Auth)", False, 
+                             f"Expected 401, got {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Confirm Pro (No Auth)", False, f"Exception: {str(e)}")
+    
+    def test_checkout_success_invalid_session(self):
+        """Test GET /api/stripe/checkout-success with invalid session_id"""
+        print("\n=== TESTING CHECKOUT SUCCESS (INVALID SESSION) ===")
+        
+        try:
+            response = self.session.get(f"{BACKEND_URL}/stripe/checkout-success?session_id=invalid")
+            
+            if response.status_code == 400:
+                self.log_test("Checkout Success (Invalid Session)", True, 
+                             "Correctly returned 400 for invalid session_id")
+            else:
+                self.log_test("Checkout Success (Invalid Session)", False, 
+                             f"Expected 400, got {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Checkout Success (Invalid Session)", False, f"Exception: {str(e)}")
+    
+    def test_subscription_status(self):
+        """Test GET /api/subscription/status endpoint"""
+        print("\n=== TESTING SUBSCRIPTION STATUS ===")
+        
+        headers = {
+            "Authorization": f"Bearer {self.auth_token}",
+            "Content-Type": "application/json"
+        }
+        
+        try:
+            response = self.session.get(f"{BACKEND_URL}/subscription/status", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                tier = data.get("tier", "unknown")
+                is_pro = data.get("is_pro", False)
+                referral_code = data.get("referral_code", "")
+                
+                self.log_test("Subscription Status", True, 
+                             f"Tier: {tier}, Is Pro: {is_pro}, Referral Code: {referral_code}")
+            else:
+                self.log_test("Subscription Status", False, 
+                             f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            self.log_test("Subscription Status", False, f"Exception: {str(e)}")
+    
+    def run_stripe_tests(self):
+        """Run all Stripe endpoint tests"""
+        print("\n" + "=" * 60)
+        print("STARTING STRIPE SUBSCRIPTION ENDPOINT TESTS")
+        print("=" * 60)
+        
+        # Step 1: Register test user
+        if not self.register_test_user():
+            print("❌ Failed to register test user. Aborting Stripe tests.")
+            return False
+        
+        # Step 2: Test create checkout session (authenticated)
+        session_id = self.test_create_checkout_session_authenticated()
+        
+        # Step 3: Test create checkout session (unauthenticated)
+        self.test_create_checkout_session_unauthenticated()
+        
+        # Step 4: Verify Stripe customer creation
+        self.test_stripe_customer_creation()
+        
+        # Step 5: Test confirm pro (invalid session)
+        self.test_confirm_pro_invalid_session()
+        
+        # Step 6: Test confirm pro (unauthenticated)
+        self.test_confirm_pro_unauthenticated()
+        
+        # Step 7: Test checkout success (invalid session)
+        self.test_checkout_success_invalid_session()
+        
+        # Step 8: Test subscription status
+        self.test_subscription_status()
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("STRIPE ENDPOINT TESTING SUMMARY")
+        print("=" * 60)
+        
+        passed = sum(1 for result in self.test_results if result["success"])
+        total = len(self.test_results)
+        
+        print(f"Tests Passed: {passed}/{total}")
+        
+        if passed == total:
+            print("🎉 ALL STRIPE TESTS PASSED!")
+            return True
+        else:
+            print("⚠️  Some Stripe tests failed. Check details above.")
+            for result in self.test_results:
+                if not result["success"]:
+                    print(f"   ❌ {result['test']}: {result['details']}")
+            return False
+
 if __name__ == "__main__":
-    tester = StudyLocationsAPITester()
-    success = tester.run_all_tests()
-    sys.exit(0 if success else 1)
+    # Run Stripe tests as requested
+    print("Running Stripe Subscription API Tests...")
+    stripe_tester = StripeAPITester()
+    stripe_success = stripe_tester.run_stripe_tests()
+    
+    # Exit with appropriate code
+    sys.exit(0 if stripe_success else 1)
