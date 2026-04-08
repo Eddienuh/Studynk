@@ -25,17 +25,13 @@ export default function ChoosePlanScreen() {
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'pro'>('basic');
 
   const handleContinue = async () => {
-    if (selectedPlan === 'basic') {
-      router.replace('/(tabs)');
-      return;
-    }
-
-    // Pro plan — initiate Stripe Checkout
+    // Both plans now require Stripe Checkout
     setLoading(true);
     try {
+      const welcomeRoute = selectedPlan === 'pro' ? '/pro-welcome' : '/(tabs)';
       const successUrl = Platform.OS === 'web'
-        ? (typeof window !== 'undefined' ? `${window.location.origin}/pro-welcome` : Linking.createURL('/pro-welcome'))
-        : Linking.createURL('/pro-welcome');
+        ? (typeof window !== 'undefined' ? `${window.location.origin}${welcomeRoute}` : Linking.createURL(welcomeRoute))
+        : Linking.createURL(welcomeRoute);
       const cancelUrl = Platform.OS === 'web'
         ? (typeof window !== 'undefined' ? `${window.location.origin}/choose-plan` : Linking.createURL('/choose-plan'))
         : Linking.createURL('/choose-plan');
@@ -46,7 +42,7 @@ export default function ChoosePlanScreen() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ success_url: successUrl, cancel_url: cancelUrl }),
+        body: JSON.stringify({ plan: selectedPlan, success_url: successUrl, cancel_url: cancelUrl }),
       });
 
       const data = await response.json();
@@ -96,7 +92,10 @@ export default function ChoosePlanScreen() {
             </View>
             <View style={styles.planTitleWrap}>
               <Text style={styles.planName}>Basic</Text>
-              <Text style={styles.planPrice}>Free</Text>
+              <View style={styles.priceRow}>
+                <Text style={styles.planPrice}>{"\u00A3"}2.99</Text>
+                <Text style={styles.planPricePeriod}>/month</Text>
+              </View>
             </View>
             <View style={[styles.radioOuter, selectedPlan === 'basic' && styles.radioOuterActive]}>
               {selectedPlan === 'basic' && <View style={styles.radioInner} />}
@@ -129,10 +128,10 @@ export default function ChoosePlanScreen() {
             <View style={styles.planTitleWrap}>
               <Text style={styles.planName}>Pro</Text>
               <View style={styles.priceRow}>
-                <Text style={styles.planPricePro}>{"\u00A3"}3.99</Text>
+                <Text style={styles.planPricePro}>{"\u00A3"}4.99</Text>
                 <Text style={styles.planPricePeriod}>/month</Text>
               </View>
-              <Text style={styles.trialNote}>Free for 30 days, then {"\u00A3"}3.99/mo</Text>
+              <Text style={styles.trialNote}>Free for 30 days, then {"\u00A3"}4.99/mo</Text>
             </View>
             <View style={[styles.radioOuter, selectedPlan === 'pro' && styles.radioOuterActive]}>
               {selectedPlan === 'pro' && <View style={styles.radioInner} />}
@@ -149,7 +148,7 @@ export default function ChoosePlanScreen() {
         </TouchableOpacity>
 
         <Text style={styles.legalText}>
-          Pro subscription auto-renews at {"\u00A3"}3.99/month unless cancelled at least 24 hours before the trial ends. By subscribing you agree to our{' '}
+          Subscriptions auto-renew monthly (Basic {"\u00A3"}2.99/mo, Pro {"\u00A3"}4.99/mo) unless cancelled at least 24 hours before renewal. Pro includes a 30-day free trial. By subscribing you agree to our{' '}
           <Text style={styles.legalLink} onPress={() => router.push('/terms')}>Terms of Service</Text>.
         </Text>
       </ScrollView>
@@ -164,7 +163,7 @@ export default function ChoosePlanScreen() {
             <ActivityIndicator color="#FFF" />
           ) : (
             <Text style={styles.continueBtnText}>
-              {selectedPlan === 'basic' ? 'Continue with Basic' : 'Start Free Trial'}
+              {selectedPlan === 'basic' ? 'Subscribe to Basic' : 'Start Free Trial'}
             </Text>
           )}
         </TouchableOpacity>

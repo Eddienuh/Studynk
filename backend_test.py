@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
-StudyMatch Backend API Testing - Study Locations Endpoints
-Testing the new Study Locations endpoints for StudyMatch
+Backend API Testing for StudyMatch - Focus on Updated Endpoints
+Testing two specific updated endpoints:
+1. Stripe Pricing Update - POST /api/stripe/create-checkout-session
+2. Location Share with Meeting Note - POST /api/locations/share
 """
 
 import requests
@@ -10,12 +12,11 @@ import sys
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://study-sync-44.preview.emergentagent.com/api"
+BASE_URL = "https://study-sync-44.preview.emergentagent.com/api"
 TEST_EMAIL = "test@studymatch.com"
 TEST_PASSWORD = "test123456"
-TEST_NAME = "Test Student"
 
-class StudyLocationsAPITester:
+class StudyMatchTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
@@ -34,312 +35,308 @@ class StudyLocationsAPITester:
             "details": details
         })
         
-    def register_and_login(self):
-        """Register a new user and login to get auth token"""
-        print("\n=== AUTHENTICATION SETUP ===")
+    def authenticate(self):
+        """Login and get auth token"""
+        print("\n🔐 Authenticating...")
         
-        # Try to register (might fail if user exists, that's ok)
-        register_data = {
-            "name": TEST_NAME,
-            "email": TEST_EMAIL,
-            "password": TEST_PASSWORD,
-            "gdpr_consent": True
-        }
-        
-        try:
-            response = self.session.post(f"{BACKEND_URL}/auth/register", json=register_data)
-            if response.status_code == 201:
-                print("✅ User registered successfully")
-            elif response.status_code == 409:
-                print("ℹ️  User already exists, proceeding to login")
-            else:
-                print(f"⚠️  Registration response: {response.status_code}")
-        except Exception as e:
-            print(f"⚠️  Registration error: {e}")
-        
-        # Login to get token
+        # Login with email/password
         login_data = {
             "email": TEST_EMAIL,
             "password": TEST_PASSWORD
         }
         
         try:
-            response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_data)
+            response = self.session.post(f"{BASE_URL}/auth/login", json=login_data)
             if response.status_code == 200:
                 data = response.json()
-                self.auth_token = data.get("token") or data.get("session_token")
+                self.auth_token = data.get("token")
                 self.user_data = data.get("user")
-                print(f"✅ Login successful, token: {self.auth_token[:20]}...")
+                self.session.headers.update({"Authorization": f"Bearer {self.auth_token}"})
+                self.log_test("Authentication", True, f"Logged in as {self.user_data.get('email')}")
                 return True
             else:
-                print(f"❌ Login failed: {response.status_code} - {response.text}")
+                self.log_test("Authentication", False, f"Login failed: {response.status_code} - {response.text}")
                 return False
         except Exception as e:
-            print(f"❌ Login error: {e}")
+            self.log_test("Authentication", False, f"Login error: {str(e)}")
             return False
     
-    def test_locations_search_no_params(self):
-        """Test GET /api/locations/search with no parameters (should return all 8 locations)"""
+    def test_stripe_pricing_update(self):
+        """Test updated Stripe checkout session endpoint with plan parameter"""
+        print("\n💳 Testing Stripe Pricing Update...")
+        
+        # Test 1: Basic plan checkout (£2.99, no trial)
         try:
-            response = self.session.get(f"{BACKEND_URL}/locations/search")
+            basic_data = {
+                "plan": "basic",
+                "success_url": "https://example.com/success",
+                "cancel_url": "https://example.com/cancel"
+            }
+            response = self.session.post(f"{BASE_URL}/stripe/create-checkout-session", json=basic_data)
             
             if response.status_code == 200:
                 data = response.json()
-                locations = data.get("locations", [])
-                
-                if len(locations) == 8:
-                    # Check if each location has required fields
-                    required_fields = ["location_id", "name", "type", "address", "description", "opening_hours", "amenities", "busyness"]
-                    all_valid = True
-                    
-                    for loc in locations:
-                        for field in required_fields:
-                            if field not in loc:
-                                all_valid = False
-                                break
-                        
-                        # Check busyness structure
-                        busyness = loc.get("busyness", {})
-                        if not isinstance(busyness, dict) or "level" not in busyness or "percentage" not in busyness:
-                            all_valid = False
-                            break
-                    
-                    if all_valid:
-                        self.log_test("GET /locations/search (no params)", True, f"Returned {len(locations)} locations with all required fields and busyness data")
-                    else:
-                        self.log_test("GET /locations/search (no params)", False, "Some locations missing required fields or busyness data")
+                if "checkout_url" in data and "session_id" in data:
+                    self.log_test("Stripe Basic Plan Checkout", True, f"Basic plan checkout created successfully")
                 else:
-                    self.log_test("GET /locations/search (no params)", False, f"Expected 8 locations, got {len(locations)}")
+                    self.log_test("Stripe Basic Plan Checkout", False, "Missing checkout_url or session_id in response")
             else:
-                self.log_test("GET /locations/search (no params)", False, f"HTTP {response.status_code}: {response.text}")
-                
+                self.log_test("Stripe Basic Plan Checkout", False, f"Status: {response.status_code}, Response: {response.text}")
         except Exception as e:
-            self.log_test("GET /locations/search (no params)", False, f"Exception: {e}")
-    
-    def test_locations_search_with_query(self):
-        """Test GET /api/locations/search with query parameter"""
+            self.log_test("Stripe Basic Plan Checkout", False, f"Error: {str(e)}")
+        
+        # Test 2: Pro plan checkout (£4.99, 30-day trial)
         try:
-            response = self.session.get(f"{BACKEND_URL}/locations/search?q=Library")
+            pro_data = {
+                "plan": "pro",
+                "success_url": "https://example.com/success",
+                "cancel_url": "https://example.com/cancel"
+            }
+            response = self.session.post(f"{BASE_URL}/stripe/create-checkout-session", json=pro_data)
             
             if response.status_code == 200:
                 data = response.json()
-                locations = data.get("locations", [])
-                
-                # Should return libraries (Main Library, Science Library, Law Library)
-                library_count = 0
-                for loc in locations:
-                    if "library" in loc.get("name", "").lower() or loc.get("type") == "library":
-                        library_count += 1
-                
-                if library_count >= 3:  # We have 3 libraries in seed data
-                    self.log_test("GET /locations/search?q=Library", True, f"Found {library_count} libraries matching query")
+                if "checkout_url" in data and "session_id" in data:
+                    self.log_test("Stripe Pro Plan Checkout", True, f"Pro plan checkout created successfully")
                 else:
-                    self.log_test("GET /locations/search?q=Library", False, f"Expected at least 3 libraries, found {library_count}")
+                    self.log_test("Stripe Pro Plan Checkout", False, "Missing checkout_url or session_id in response")
             else:
-                self.log_test("GET /locations/search?q=Library", False, f"HTTP {response.status_code}: {response.text}")
-                
+                self.log_test("Stripe Pro Plan Checkout", False, f"Status: {response.status_code}, Response: {response.text}")
         except Exception as e:
-            self.log_test("GET /locations/search?q=Library", False, f"Exception: {e}")
-    
-    def test_locations_search_with_type_filter(self):
-        """Test GET /api/locations/search with type filter"""
+            self.log_test("Stripe Pro Plan Checkout", False, f"Error: {str(e)}")
+        
+        # Test 3: Invalid plan value
         try:
-            response = self.session.get(f"{BACKEND_URL}/locations/search?type=cafe")
+            invalid_data = {
+                "plan": "premium",  # Invalid plan
+                "success_url": "https://example.com/success",
+                "cancel_url": "https://example.com/cancel"
+            }
+            response = self.session.post(f"{BASE_URL}/stripe/create-checkout-session", json=invalid_data)
             
-            if response.status_code == 200:
-                data = response.json()
-                locations = data.get("locations", [])
-                
-                # Should return only cafes (The Study Bean, Quiet Corner Cafe)
-                all_cafes = all(loc.get("type") == "cafe" for loc in locations)
-                cafe_count = len(locations)
-                
-                if all_cafes and cafe_count >= 2:  # We have 2 cafes in seed data
-                    self.log_test("GET /locations/search?type=cafe", True, f"Found {cafe_count} cafes, all correctly filtered")
-                else:
-                    self.log_test("GET /locations/search?type=cafe", False, f"Type filter failed or unexpected count: {cafe_count}")
+            if response.status_code == 400:
+                self.log_test("Stripe Invalid Plan Validation", True, "Correctly rejected invalid plan with 400")
             else:
-                self.log_test("GET /locations/search?type=cafe", False, f"HTTP {response.status_code}: {response.text}")
-                
+                self.log_test("Stripe Invalid Plan Validation", False, f"Expected 400, got {response.status_code}")
         except Exception as e:
-            self.log_test("GET /locations/search?type=cafe", False, f"Exception: {e}")
-    
-    def test_locations_search_combined_filters(self):
-        """Test GET /api/locations/search with both query and type filters"""
+            self.log_test("Stripe Invalid Plan Validation", False, f"Error: {str(e)}")
+        
+        # Test 4: Unauthenticated request
         try:
-            response = self.session.get(f"{BACKEND_URL}/locations/search?q=Study&type=study_hub")
+            # Remove auth header temporarily
+            auth_header = self.session.headers.pop("Authorization", None)
             
-            if response.status_code == 200:
-                data = response.json()
-                locations = data.get("locations", [])
-                
-                # Should return study hubs with "Study" in name (Student Union Hub might match)
-                all_study_hubs = all(loc.get("type") == "study_hub" for loc in locations)
-                
-                if all_study_hubs:
-                    self.log_test("GET /locations/search?q=Study&type=study_hub", True, f"Found {len(locations)} study hubs matching query")
-                else:
-                    self.log_test("GET /locations/search?q=Study&type=study_hub", False, "Combined filter failed - not all results are study_hub type")
-            else:
-                self.log_test("GET /locations/search?q=Study&type=study_hub", False, f"HTTP {response.status_code}: {response.text}")
-                
-        except Exception as e:
-            self.log_test("GET /locations/search?q=Study&type=study_hub", False, f"Exception: {e}")
-    
-    def test_get_location_valid_id(self):
-        """Test GET /api/locations/{location_id} with valid ID"""
-        try:
-            response = self.session.get(f"{BACKEND_URL}/locations/loc_001")
+            unauth_data = {
+                "plan": "basic",
+                "success_url": "https://example.com/success",
+                "cancel_url": "https://example.com/cancel"
+            }
+            response = self.session.post(f"{BASE_URL}/stripe/create-checkout-session", json=unauth_data)
             
-            if response.status_code == 200:
-                location = response.json()
-                
-                # Check required fields
-                required_fields = ["location_id", "name", "type", "address", "description", "opening_hours", "amenities", "busyness"]
-                has_all_fields = all(field in location for field in required_fields)
-                
-                # Check busyness structure
-                busyness = location.get("busyness", {})
-                has_busyness = isinstance(busyness, dict) and "level" in busyness and "percentage" in busyness
-                
-                if has_all_fields and has_busyness and location.get("location_id") == "loc_001":
-                    self.log_test("GET /locations/loc_001", True, f"Retrieved location: {location.get('name')} with busyness data")
-                else:
-                    self.log_test("GET /locations/loc_001", False, "Missing required fields or incorrect location_id")
-            else:
-                self.log_test("GET /locations/loc_001", False, f"HTTP {response.status_code}: {response.text}")
-                
-        except Exception as e:
-            self.log_test("GET /locations/loc_001", False, f"Exception: {e}")
-    
-    def test_get_location_invalid_id(self):
-        """Test GET /api/locations/{location_id} with invalid ID"""
-        try:
-            response = self.session.get(f"{BACKEND_URL}/locations/nonexistent")
-            
-            if response.status_code == 404:
-                self.log_test("GET /locations/nonexistent", True, "Correctly returned 404 for invalid location ID")
-            else:
-                self.log_test("GET /locations/nonexistent", False, f"Expected 404, got {response.status_code}")
-                
-        except Exception as e:
-            self.log_test("GET /locations/nonexistent", False, f"Exception: {e}")
-    
-    def test_share_location_without_auth(self):
-        """Test POST /api/locations/share without authentication"""
-        try:
-            share_data = {"location_id": "loc_001"}
-            response = self.session.post(f"{BACKEND_URL}/locations/share", json=share_data)
+            # Restore auth header
+            if auth_header:
+                self.session.headers["Authorization"] = auth_header
             
             if response.status_code == 401:
-                self.log_test("POST /locations/share (no auth)", True, "Correctly returned 401 for unauthenticated request")
+                self.log_test("Stripe Unauthenticated Access", True, "Correctly rejected unauthenticated request with 401")
             else:
-                self.log_test("POST /locations/share (no auth)", False, f"Expected 401, got {response.status_code}")
-                
+                self.log_test("Stripe Unauthenticated Access", False, f"Expected 401, got {response.status_code}")
         except Exception as e:
-            self.log_test("POST /locations/share (no auth)", False, f"Exception: {e}")
+            # Restore auth header in case of error
+            if auth_header:
+                self.session.headers["Authorization"] = auth_header
+            self.log_test("Stripe Unauthenticated Access", False, f"Error: {str(e)}")
     
-    def test_share_location_missing_location_id(self):
-        """Test POST /api/locations/share with missing location_id"""
-        if not self.auth_token:
-            self.log_test("POST /locations/share (missing location_id)", False, "No auth token available")
-            return
-            
+    def ensure_user_in_group(self):
+        """Ensure user is in a group for location sharing tests"""
+        print("\n👥 Checking group membership...")
+        
         try:
-            headers = {"Authorization": f"Bearer {self.auth_token}"}
-            share_data = {}  # Missing location_id
-            response = self.session.post(f"{BACKEND_URL}/locations/share", json=share_data, headers=headers)
+            # Check current user status
+            user_response = self.session.get(f"{BASE_URL}/auth/me")
+            if user_response.status_code != 200:
+                self.log_test("User Status Check", False, "Could not get user status")
+                return False
             
-            if response.status_code == 400:
-                self.log_test("POST /locations/share (missing location_id)", True, "Correctly returned 400 for missing location_id")
+            user_data = user_response.json()
+            
+            # If user already has a group, we're good
+            if user_data.get("group_id"):
+                self.log_test("Group Membership Check", True, f"User is in group: {user_data.get('group_id')}")
+                return True
+            
+            # If not in group, complete onboarding first
+            print("   User not in group, completing onboarding...")
+            
+            # First ensure user profile is complete
+            profile_data = {
+                "university": "Test University",
+                "course": "Computer Science",
+                "study_style": "Active",
+                "grade_goal": "High achiever",
+                "location_preference": "Library",
+                "weekly_availability": [
+                    {"day": "Monday", "start_time": "09:00", "end_time": "17:00"},
+                    {"day": "Tuesday", "start_time": "09:00", "end_time": "17:00"}
+                ],
+                "work_ethic": 8
+            }
+            
+            profile_response = self.session.put(f"{BASE_URL}/users/profile", json=profile_data)
+            if profile_response.status_code == 200:
+                print("   Profile updated successfully")
             else:
-                self.log_test("POST /locations/share (missing location_id)", False, f"Expected 400, got {response.status_code}")
-                
-        except Exception as e:
-            self.log_test("POST /locations/share (missing location_id)", False, f"Exception: {e}")
-    
-    def test_share_location_invalid_location_id(self):
-        """Test POST /api/locations/share with invalid location_id"""
-        if not self.auth_token:
-            self.log_test("POST /locations/share (invalid location_id)", False, "No auth token available")
-            return
+                self.log_test("Profile Update", False, f"Profile update failed: {profile_response.status_code}")
+                return False
             
-        try:
-            headers = {"Authorization": f"Bearer {self.auth_token}"}
-            share_data = {"location_id": "invalid_location"}
-            response = self.session.post(f"{BACKEND_URL}/locations/share", json=share_data, headers=headers)
-            
-            if response.status_code == 404:
-                self.log_test("POST /locations/share (invalid location_id)", True, "Correctly returned 404 for invalid location_id")
-            else:
-                self.log_test("POST /locations/share (invalid location_id)", False, f"Expected 404, got {response.status_code}")
-                
-        except Exception as e:
-            self.log_test("POST /locations/share (invalid location_id)", False, f"Exception: {e}")
-    
-    def test_share_location_no_group(self):
-        """Test POST /api/locations/share when user has no group"""
-        if not self.auth_token:
-            self.log_test("POST /locations/share (no group)", False, "No auth token available")
-            return
-            
-        try:
-            headers = {"Authorization": f"Bearer {self.auth_token}"}
-            share_data = {"location_id": "loc_001"}
-            response = self.session.post(f"{BACKEND_URL}/locations/share", json=share_data, headers=headers)
-            
-            if response.status_code == 400:
-                response_data = response.json()
-                if "must be in a group" in response_data.get("detail", "").lower():
-                    self.log_test("POST /locations/share (no group)", True, "Correctly returned 400 - user must be in a group")
+            # Try to find matches
+            match_response = self.session.post(f"{BASE_URL}/matching/find-matches")
+            if match_response.status_code == 200:
+                match_data = match_response.json()
+                if match_data.get("group_created"):
+                    self.log_test("Group Creation", True, f"Successfully created group: {match_data.get('group_id')}")
+                    return True
                 else:
-                    self.log_test("POST /locations/share (no group)", False, f"Wrong error message: {response_data}")
+                    # No matches found, but that's expected in a test environment
+                    self.log_test("Group Creation", False, "No matches found to create group - expected in test environment")
+                    return False
             else:
-                self.log_test("POST /locations/share (no group)", False, f"Expected 400, got {response.status_code}")
+                self.log_test("Group Creation", False, f"Match finding failed: {match_response.status_code} - {match_response.text}")
+                return False
                 
         except Exception as e:
-            self.log_test("POST /locations/share (no group)", False, f"Exception: {e}")
-    
-    def run_all_tests(self):
-        """Run all Study Locations endpoint tests"""
-        print("🧪 StudyMatch Study Locations API Testing")
-        print("=" * 50)
-        
-        # Setup authentication
-        if not self.register_and_login():
-            print("❌ Authentication setup failed, cannot proceed with auth-required tests")
+            self.log_test("Group Setup", False, f"Error: {str(e)}")
             return False
+    
+    def test_location_share_with_meeting_note(self):
+        """Test updated location share endpoint with meeting_note functionality"""
+        print("\n📍 Testing Location Share with Meeting Note...")
         
-        print("\n=== STUDY LOCATIONS ENDPOINTS TESTING ===")
+        # First test that the endpoint properly validates group membership
+        try:
+            # Get a location to share
+            locations_response = self.session.get(f"{BASE_URL}/locations/search")
+            if locations_response.status_code != 200:
+                self.log_test("Location Share Setup", False, "Could not fetch locations for testing")
+                return
+            
+            locations_data = locations_response.json()
+            locations = locations_data.get("locations", [])
+            if not locations:
+                self.log_test("Location Share Setup", False, "No locations available for testing")
+                return
+            
+            test_location = locations[0]
+            location_id = test_location["location_id"]
+            
+            # Test validation: user not in group should get 400
+            share_data = {
+                "location_id": location_id,
+                "meeting_note": "Test meeting note"
+            }
+            response = self.session.post(f"{BASE_URL}/locations/share", json=share_data)
+            
+            if response.status_code == 400 and "must be in a group" in response.text:
+                self.log_test("Location Share Group Validation", True, "Correctly validates user must be in group")
+            else:
+                self.log_test("Location Share Group Validation", False, f"Unexpected response: {response.status_code} - {response.text}")
+            
+        except Exception as e:
+            self.log_test("Location Share Group Validation", False, f"Error: {str(e)}")
         
-        # Test search endpoints
-        self.test_locations_search_no_params()
-        self.test_locations_search_with_query()
-        self.test_locations_search_with_type_filter()
-        self.test_locations_search_combined_filters()
+        # Try to get user into a group for actual functionality testing
+        if not self.ensure_user_in_group():
+            print("   Cannot test location sharing functionality - user not in group")
+            print("   This is expected in a test environment with no other users")
+            self.log_test("Location Share Functionality", False, "Cannot test - requires group membership (expected in test environment)")
+            return
         
-        # Test individual location endpoint
-        self.test_get_location_valid_id()
-        self.test_get_location_invalid_id()
+        # If we reach here, user is in a group, so test the actual functionality
+        try:
+            # Test 1: Share location WITH meeting note
+            share_data_with_note = {
+                "location_id": location_id,
+                "meeting_note": "Let's meet by the main entrance at 2pm"
+            }
+            response = self.session.post(f"{BASE_URL}/locations/share", json=share_data_with_note)
+            
+            if response.status_code == 200:
+                data = response.json()
+                chat_message = data.get("chat_message", {})
+                content = chat_message.get("content", "")
+                meeting_note_field = chat_message.get("meeting_note")
+                
+                # Check if meeting note appears in content
+                if "📌 Meeting Spot: Let's meet by the main entrance at 2pm" in content:
+                    self.log_test("Location Share with Meeting Note - Content", True, "Meeting note correctly added to message content")
+                else:
+                    self.log_test("Location Share with Meeting Note - Content", False, f"Meeting note not found in content: {content}")
+                
+                # Check if meeting note is stored as separate field
+                if meeting_note_field == "Let's meet by the main entrance at 2pm":
+                    self.log_test("Location Share with Meeting Note - Field", True, "Meeting note correctly stored as separate field")
+                else:
+                    self.log_test("Location Share with Meeting Note - Field", False, f"Meeting note field incorrect: {meeting_note_field}")
+                    
+            else:
+                self.log_test("Location Share with Meeting Note", False, f"Status: {response.status_code}, Response: {response.text}")
+                
+            # Test 2: Share location WITHOUT meeting note (should work as before)
+            share_data_without_note = {
+                "location_id": location_id
+            }
+            response = self.session.post(f"{BASE_URL}/locations/share", json=share_data_without_note)
+            
+            if response.status_code == 200:
+                data = response.json()
+                chat_message = data.get("chat_message", {})
+                content = chat_message.get("content", "")
+                meeting_note_field = chat_message.get("meeting_note")
+                
+                # Check that no meeting note appears in content
+                if "📌 Meeting Spot:" not in content:
+                    self.log_test("Location Share without Meeting Note - Content", True, "No meeting note in content (as expected)")
+                else:
+                    self.log_test("Location Share without Meeting Note - Content", False, "Unexpected meeting note found in content")
+                
+                # Check that meeting_note field is None or empty
+                if not meeting_note_field:
+                    self.log_test("Location Share without Meeting Note - Field", True, "Meeting note field correctly empty/None")
+                else:
+                    self.log_test("Location Share without Meeting Note - Field", False, f"Unexpected meeting note field: {meeting_note_field}")
+                    
+            else:
+                self.log_test("Location Share without Meeting Note", False, f"Status: {response.status_code}, Response: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Location Share Functionality", False, f"Error: {str(e)}")
+    
+    def run_tests(self):
+        """Run all tests"""
+        print("🧪 StudyMatch Backend Testing - Updated Endpoints")
+        print("=" * 60)
         
-        # Test share location endpoint
-        self.test_share_location_without_auth()
-        self.test_share_location_missing_location_id()
-        self.test_share_location_invalid_location_id()
-        self.test_share_location_no_group()
+        # Authenticate first
+        if not self.authenticate():
+            print("❌ Authentication failed - cannot proceed with tests")
+            return
+        
+        # Test updated endpoints
+        self.test_stripe_pricing_update()
+        self.test_location_share_with_meeting_note()
         
         # Summary
-        print("\n" + "=" * 50)
+        print("\n" + "=" * 60)
         print("📊 TEST SUMMARY")
-        print("=" * 50)
+        print("=" * 60)
         
         total_tests = len(self.test_results)
         passed_tests = sum(1 for result in self.test_results if result["success"])
         failed_tests = total_tests - passed_tests
         
         print(f"Total Tests: {total_tests}")
-        print(f"✅ Passed: {passed_tests}")
-        print(f"❌ Failed: {failed_tests}")
+        print(f"Passed: {passed_tests}")
+        print(f"Failed: {failed_tests}")
         print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
         
         if failed_tests > 0:
@@ -350,290 +347,7 @@ class StudyLocationsAPITester:
         
         return failed_tests == 0
 
-class StripeAPITester:
-    def __init__(self):
-        self.session = requests.Session()
-        self.auth_token = None
-        self.user_data = None
-        self.test_results = []
-        
-    def log_test(self, test_name, success, details=""):
-        """Log test results"""
-        status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status} {test_name}")
-        if details:
-            print(f"   {details}")
-        self.test_results.append({
-            "test": test_name,
-            "success": success,
-            "details": details
-        })
-        
-    def register_test_user(self):
-        """Register a unique test user for Stripe testing"""
-        print("\n=== STRIPE TESTING - USER REGISTRATION ===")
-        
-        # Generate unique email to avoid duplicates
-        import uuid
-        unique_id = uuid.uuid4().hex[:8]
-        test_email = f"stripe_test_{unique_id}@test.com"
-        test_password = "test123456"
-        test_name = "Stripe Test User"
-        
-        register_data = {
-            "name": test_name,
-            "email": test_email,
-            "password": test_password,
-            "gdpr_consent": True
-        }
-        
-        try:
-            response = self.session.post(f"{BACKEND_URL}/auth/register", json=register_data)
-            if response.status_code in [200, 201]:
-                data = response.json()
-                self.auth_token = data.get("token")
-                self.user_data = data.get("user")
-                self.log_test("User Registration for Stripe Testing", True, 
-                             f"User {test_email} registered successfully")
-                return True
-            else:
-                self.log_test("User Registration for Stripe Testing", False, 
-                             f"Status: {response.status_code}, Response: {response.text}")
-                return False
-        except Exception as e:
-            self.log_test("User Registration for Stripe Testing", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_create_checkout_session_authenticated(self):
-        """Test POST /api/stripe/create-checkout-session with authentication"""
-        print("\n=== TESTING CREATE CHECKOUT SESSION (AUTHENTICATED) ===")
-        
-        headers = {
-            "Authorization": f"Bearer {self.auth_token}",
-            "Content-Type": "application/json"
-        }
-        
-        checkout_data = {
-            "success_url": "http://localhost:3000/pro-welcome",
-            "cancel_url": "http://localhost:3000/choose-plan"
-        }
-        
-        try:
-            response = self.session.post(f"{BACKEND_URL}/stripe/create-checkout-session", 
-                                       json=checkout_data, headers=headers)
-            
-            if response.status_code == 200:
-                data = response.json()
-                checkout_url = data.get("checkout_url")
-                session_id = data.get("session_id")
-                
-                if checkout_url and session_id and "checkout.stripe.com" in checkout_url:
-                    self.log_test("Create Checkout Session (Authenticated)", True, 
-                                 f"Checkout URL: {checkout_url[:50]}..., Session ID: {session_id}")
-                    return session_id
-                else:
-                    self.log_test("Create Checkout Session (Authenticated)", False, 
-                                 f"Invalid response format: {data}")
-                    return None
-            else:
-                self.log_test("Create Checkout Session (Authenticated)", False, 
-                             f"Status: {response.status_code}, Response: {response.text}")
-                return None
-        except Exception as e:
-            self.log_test("Create Checkout Session (Authenticated)", False, f"Exception: {str(e)}")
-            return None
-    
-    def test_create_checkout_session_unauthenticated(self):
-        """Test POST /api/stripe/create-checkout-session without authentication"""
-        print("\n=== TESTING CREATE CHECKOUT SESSION (UNAUTHENTICATED) ===")
-        
-        checkout_data = {
-            "success_url": "http://localhost:3000/pro-welcome",
-            "cancel_url": "http://localhost:3000/choose-plan"
-        }
-        
-        try:
-            response = self.session.post(f"{BACKEND_URL}/stripe/create-checkout-session", 
-                                       json=checkout_data)
-            
-            if response.status_code == 401:
-                self.log_test("Create Checkout Session (No Auth)", True, 
-                             "Correctly returned 401 Unauthorized")
-            else:
-                self.log_test("Create Checkout Session (No Auth)", False, 
-                             f"Expected 401, got {response.status_code}: {response.text}")
-        except Exception as e:
-            self.log_test("Create Checkout Session (No Auth)", False, f"Exception: {str(e)}")
-    
-    def test_stripe_customer_creation(self):
-        """Test that Stripe customer was created and added to user"""
-        print("\n=== TESTING STRIPE CUSTOMER CREATION ===")
-        
-        headers = {
-            "Authorization": f"Bearer {self.auth_token}",
-            "Content-Type": "application/json"
-        }
-        
-        try:
-            response = self.session.get(f"{BACKEND_URL}/auth/me", headers=headers)
-            
-            if response.status_code == 200:
-                user_data = response.json()
-                stripe_customer_id = user_data.get("stripe_customer_id")
-                
-                if stripe_customer_id and stripe_customer_id.startswith("cus_"):
-                    self.log_test("Stripe Customer Creation", True, 
-                                 f"User has stripe_customer_id: {stripe_customer_id}")
-                else:
-                    self.log_test("Stripe Customer Creation", False, 
-                                 "User does not have valid stripe_customer_id field")
-            else:
-                self.log_test("Stripe Customer Creation", False, 
-                             f"Failed to get user data: {response.status_code}")
-        except Exception as e:
-            self.log_test("Stripe Customer Creation", False, f"Exception: {str(e)}")
-    
-    def test_confirm_pro_invalid_session(self):
-        """Test POST /api/stripe/confirm-pro with invalid session_id"""
-        print("\n=== TESTING CONFIRM PRO (INVALID SESSION) ===")
-        
-        headers = {
-            "Authorization": f"Bearer {self.auth_token}",
-            "Content-Type": "application/json"
-        }
-        
-        invalid_data = {"session_id": "invalid_session_id"}
-        
-        try:
-            response = self.session.post(f"{BACKEND_URL}/stripe/confirm-pro", 
-                                       json=invalid_data, headers=headers)
-            
-            if response.status_code == 400:
-                self.log_test("Confirm Pro (Invalid Session)", True, 
-                             "Correctly returned 400 for invalid session_id")
-            else:
-                self.log_test("Confirm Pro (Invalid Session)", False, 
-                             f"Expected 400, got {response.status_code}: {response.text}")
-        except Exception as e:
-            self.log_test("Confirm Pro (Invalid Session)", False, f"Exception: {str(e)}")
-    
-    def test_confirm_pro_unauthenticated(self):
-        """Test POST /api/stripe/confirm-pro without authentication"""
-        print("\n=== TESTING CONFIRM PRO (UNAUTHENTICATED) ===")
-        
-        invalid_data = {"session_id": "invalid_session_id"}
-        
-        try:
-            response = self.session.post(f"{BACKEND_URL}/stripe/confirm-pro", json=invalid_data)
-            
-            if response.status_code == 401:
-                self.log_test("Confirm Pro (No Auth)", True, 
-                             "Correctly returned 401 Unauthorized")
-            else:
-                self.log_test("Confirm Pro (No Auth)", False, 
-                             f"Expected 401, got {response.status_code}: {response.text}")
-        except Exception as e:
-            self.log_test("Confirm Pro (No Auth)", False, f"Exception: {str(e)}")
-    
-    def test_checkout_success_invalid_session(self):
-        """Test GET /api/stripe/checkout-success with invalid session_id"""
-        print("\n=== TESTING CHECKOUT SUCCESS (INVALID SESSION) ===")
-        
-        try:
-            response = self.session.get(f"{BACKEND_URL}/stripe/checkout-success?session_id=invalid")
-            
-            if response.status_code == 400:
-                self.log_test("Checkout Success (Invalid Session)", True, 
-                             "Correctly returned 400 for invalid session_id")
-            else:
-                self.log_test("Checkout Success (Invalid Session)", False, 
-                             f"Expected 400, got {response.status_code}: {response.text}")
-        except Exception as e:
-            self.log_test("Checkout Success (Invalid Session)", False, f"Exception: {str(e)}")
-    
-    def test_subscription_status(self):
-        """Test GET /api/subscription/status endpoint"""
-        print("\n=== TESTING SUBSCRIPTION STATUS ===")
-        
-        headers = {
-            "Authorization": f"Bearer {self.auth_token}",
-            "Content-Type": "application/json"
-        }
-        
-        try:
-            response = self.session.get(f"{BACKEND_URL}/subscription/status", headers=headers)
-            
-            if response.status_code == 200:
-                data = response.json()
-                tier = data.get("tier", "unknown")
-                is_pro = data.get("is_pro", False)
-                referral_code = data.get("referral_code", "")
-                
-                self.log_test("Subscription Status", True, 
-                             f"Tier: {tier}, Is Pro: {is_pro}, Referral Code: {referral_code}")
-            else:
-                self.log_test("Subscription Status", False, 
-                             f"Status: {response.status_code}, Response: {response.text}")
-        except Exception as e:
-            self.log_test("Subscription Status", False, f"Exception: {str(e)}")
-    
-    def run_stripe_tests(self):
-        """Run all Stripe endpoint tests"""
-        print("\n" + "=" * 60)
-        print("STARTING STRIPE SUBSCRIPTION ENDPOINT TESTS")
-        print("=" * 60)
-        
-        # Step 1: Register test user
-        if not self.register_test_user():
-            print("❌ Failed to register test user. Aborting Stripe tests.")
-            return False
-        
-        # Step 2: Test create checkout session (authenticated)
-        session_id = self.test_create_checkout_session_authenticated()
-        
-        # Step 3: Test create checkout session (unauthenticated)
-        self.test_create_checkout_session_unauthenticated()
-        
-        # Step 4: Verify Stripe customer creation
-        self.test_stripe_customer_creation()
-        
-        # Step 5: Test confirm pro (invalid session)
-        self.test_confirm_pro_invalid_session()
-        
-        # Step 6: Test confirm pro (unauthenticated)
-        self.test_confirm_pro_unauthenticated()
-        
-        # Step 7: Test checkout success (invalid session)
-        self.test_checkout_success_invalid_session()
-        
-        # Step 8: Test subscription status
-        self.test_subscription_status()
-        
-        # Summary
-        print("\n" + "=" * 60)
-        print("STRIPE ENDPOINT TESTING SUMMARY")
-        print("=" * 60)
-        
-        passed = sum(1 for result in self.test_results if result["success"])
-        total = len(self.test_results)
-        
-        print(f"Tests Passed: {passed}/{total}")
-        
-        if passed == total:
-            print("🎉 ALL STRIPE TESTS PASSED!")
-            return True
-        else:
-            print("⚠️  Some Stripe tests failed. Check details above.")
-            for result in self.test_results:
-                if not result["success"]:
-                    print(f"   ❌ {result['test']}: {result['details']}")
-            return False
-
 if __name__ == "__main__":
-    # Run Stripe tests as requested
-    print("Running Stripe Subscription API Tests...")
-    stripe_tester = StripeAPITester()
-    stripe_success = stripe_tester.run_stripe_tests()
-    
-    # Exit with appropriate code
-    sys.exit(0 if stripe_success else 1)
+    tester = StudyMatchTester()
+    success = tester.run_tests()
+    sys.exit(0 if success else 1)

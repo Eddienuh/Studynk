@@ -636,7 +636,7 @@ async def upgrade_to_pro(request: Request, subscription_data: Dict[str, Any]):
         price = 9.99
     else:
         duration_days = 30
-        price = 2.99
+        price = 2.99  # Basic monthly
     
     # Grant Pro access
     await grant_pro_access(user["user_id"], duration_days, "purchase")
@@ -1223,6 +1223,7 @@ async def share_location(request: Request):
     location_id = body.get("location_id")
     # Support sharing Google Places results too
     place_data = body.get("place_data")
+    meeting_note = body.get("meeting_note", "").strip()
 
     if not location_id and not place_data:
         raise HTTPException(status_code=400, detail="location_id or place_data is required")
@@ -1247,14 +1248,26 @@ async def share_location(request: Request):
     if not user.get("group_id"):
         raise HTTPException(status_code=400, detail="You must be in a group to share locations")
 
+    # Build message content with optional meeting note
+    content_lines = [
+        f"📍 Meet Me Here!\n",
+        f"{location_name}",
+        f"{location_address}",
+        f"\nType: {location_type.replace('_', ' ').title()}",
+        f"Hours: {hours_text}",
+    ]
+    if meeting_note:
+        content_lines.append(f"\n📌 Meeting Spot: {meeting_note}")
+
     # Create a special location message in group chat
     message = {
         "message_id": f"msg_{uuid.uuid4().hex[:12]}",
         "group_id": user["group_id"],
         "sender_id": user["user_id"],
         "sender_name": user.get("name", "Unknown"),
-        "content": f"📍 Meet Me Here!\n\n{location_name}\n{location_address}\n\nType: {location_type.replace('_', ' ').title()}\nHours: {hours_text}",
+        "content": "\n".join(content_lines),
         "message_type": "location_share",
+        "meeting_note": meeting_note if meeting_note else None,
         "location_data": place_data or {
             "location_id": location_id,
             "name": location_name,
@@ -1388,14 +1401,38 @@ async def place_details(place_id: str):
 
 @api_router.post("/stripe/create-checkout-session")
 async def create_checkout_session(request: Request):
-    """Create a Stripe Checkout Session for Pro subscription with 30-day trial"""
+    """Create a Stripe Checkout Session for Basic or Pro subscription"""
     user = await get_current_user(request)
     body = await request.json()
+    plan = body.get("plan", "pro")  # 'basic' or 'pro'
     success_url = body.get("success_url", "")
     cancel_url = body.get("cancel_url", "")
 
+    if plan not in ("basic", "pro"):
+        raise HTTPException(status_code=400, detail="Invalid plan. Must be 'basic' or 'pro'.")
+
     if not STRIPE_SECRET_KEY:
         raise HTTPException(status_code=500, detail="Stripe not configured")
+
+    # Plan configuration
+    PLAN_CONFIG = {
+        "basic": {
+            "lookup_key": "studymatch_basic_monthly",
+            "product_name": "StudyMatch Basic",
+            "description": "Smart study group matching, group messaging, study streak tracking",
+            "unit_amount": 299,  # £2.99
+            "trial_days": 0,
+        },
+        "pro": {
+            "lookup_key": "studymatch_pro_monthly",
+            "product_name": "StudyMatch Pro",
+            "description": "Premium study group features: advanced matching, unlimited groups, priority support",
+            "unit_amount": 499,  # £4.99
+            "trial_days": 30,
+        },
+    }
+
+    config = PLAN_CONFIG[plan]
 
     try:
         # Get or create Stripe customer
@@ -1412,9 +1449,9 @@ async def create_checkout_session(request: Request):
                 {"$set": {"stripe_customer_id": stripe_customer_id}}
             )
 
-        # Create or find price for StudyMatch Pro (£3.99/mo)
+        # Find existing price or create new product + price
         prices = stripe.Price.list(
-            lookup_keys=["studymatch_pro_monthly"],
+            lookup_keys=[config["lookup_key"]],
             active=True,
             limit=1,
         )
@@ -1424,29 +1461,34 @@ async def create_checkout_session(request: Request):
         else:
             # Create product and price
             product = stripe.Product.create(
-                name="StudyMatch Pro",
-                description="Premium study group features: advanced matching, unlimited groups, priority support",
+                name=config["product_name"],
+                description=config["description"],
             )
             price = stripe.Price.create(
                 product=product.id,
-                unit_amount=399,
+                unit_amount=config["unit_amount"],
                 currency="gbp",
                 recurring={"interval": "month"},
-                lookup_key="studymatch_pro_monthly",
+                lookup_key=config["lookup_key"],
             )
             price_id = price.id
 
-        # Create checkout session with 30-day trial
-        session = stripe.checkout.Session.create(
-            customer=stripe_customer_id,
-            mode="subscription",
-            payment_method_types=["card"],
-            line_items=[{"price": price_id, "quantity": 1}],
-            subscription_data={"trial_period_days": 30},
-            success_url=success_url + "?session_id={CHECKOUT_SESSION_ID}",
-            cancel_url=cancel_url,
-            metadata={"user_id": user["user_id"]},
-        )
+        # Build checkout session params
+        session_params = {
+            "customer": stripe_customer_id,
+            "mode": "subscription",
+            "payment_method_types": ["card"],
+            "line_items": [{"price": price_id, "quantity": 1}],
+            "success_url": success_url + "?session_id={CHECKOUT_SESSION_ID}",
+            "cancel_url": cancel_url,
+            "metadata": {"user_id": user["user_id"], "plan": plan},
+        }
+
+        # Only Pro gets the 30-day free trial
+        if config["trial_days"] > 0:
+            session_params["subscription_data"] = {"trial_period_days": config["trial_days"]}
+
+        session = stripe.checkout.Session.create(**session_params)
 
         return {"checkout_url": session.url, "session_id": session.id}
 
