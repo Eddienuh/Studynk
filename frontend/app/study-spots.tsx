@@ -115,6 +115,7 @@ export default function StudySpotsScreen() {
   const [selectedSeeded, setSelectedSeeded] = useState<SeededLocation | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [meetingNote, setMeetingNote] = useState('');
 
   // Fetch featured/seeded locations
   const fetchFeatured = useCallback(async () => {
@@ -211,6 +212,9 @@ export default function StudySpotsScreen() {
       } else if (selectedSeeded) {
         body.location_id = selectedSeeded.location_id;
       }
+      if (meetingNote.trim()) {
+        body.meeting_note = meetingNote.trim();
+      }
 
       const response = await fetch(`${BACKEND_URL}/api/locations/share`, {
         method: 'POST',
@@ -224,8 +228,8 @@ export default function StudySpotsScreen() {
       if (response.ok) {
         const placeName = selectedPlace?.name || selectedSeeded?.name;
         Alert.alert('Shared!', `"${placeName}" sent to your group chat.`, [
-          { text: 'View Chat', onPress: () => { setSelectedPlace(null); setSelectedSeeded(null); router.push('/(tabs)/messages'); } },
-          { text: 'OK' },
+          { text: 'View Chat', onPress: () => { setSelectedPlace(null); setSelectedSeeded(null); setMeetingNote(''); router.push('/(tabs)/messages'); } },
+          { text: 'OK', onPress: () => setMeetingNote('') },
         ]);
       } else {
         const data = await response.json();
@@ -252,7 +256,7 @@ export default function StudySpotsScreen() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ location_id: loc.location_id }),
+        body: JSON.stringify({ location_id: loc.location_id, ...(meetingNote.trim() ? { meeting_note: meetingNote.trim() } : {}) }),
       });
 
       if (response.ok) {
@@ -347,6 +351,24 @@ export default function StudySpotsScreen() {
             </View>
           )}
 
+          {/* Meeting Spot Note */}
+          <View style={styles.detailSection}>
+            <Text style={styles.detailSectionTitle}>Meeting Spot</Text>
+            <Text style={styles.meetingHint}>Help your group find you — specify a room, table, or area</Text>
+            <TextInput
+              style={styles.meetingInput}
+              placeholder='e.g. "Room 3.14", "Table by the window", "2nd floor silent zone"'
+              placeholderTextColor="#999"
+              value={meetingNote}
+              onChangeText={setMeetingNote}
+              multiline
+              maxLength={120}
+            />
+            {meetingNote.length > 0 && (
+              <Text style={styles.meetingCharCount}>{meetingNote.length}/120</Text>
+            )}
+          </View>
+
           <View style={{ height: 100 }} />
         </ScrollView>
 
@@ -414,6 +436,24 @@ export default function StudySpotsScreen() {
                 </View>
               ))}
             </View>
+          </View>
+
+          {/* Meeting Spot Note */}
+          <View style={styles.detailSection}>
+            <Text style={styles.detailSectionTitle}>Meeting Spot</Text>
+            <Text style={styles.meetingHint}>Help your group find you — specify a room, table, or area</Text>
+            <TextInput
+              style={styles.meetingInput}
+              placeholder='e.g. "Room 3.14", "Table by the window", "2nd floor silent zone"'
+              placeholderTextColor="#999"
+              value={meetingNote}
+              onChangeText={setMeetingNote}
+              multiline
+              maxLength={120}
+            />
+            {meetingNote.length > 0 && (
+              <Text style={styles.meetingCharCount}>{meetingNote.length}/120</Text>
+            )}
           </View>
 
           <View style={{ height: 100 }} />
@@ -671,4 +711,8 @@ const styles = StyleSheet.create({
   shareFooter: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, paddingBottom: 32, backgroundColor: '#FFF', borderTopWidth: 1, borderTopColor: '#F0F0F0' },
   shareButton: { flexDirection: 'row', backgroundColor: '#2DAFE3', paddingVertical: 16, borderRadius: 14, alignItems: 'center', justifyContent: 'center', minHeight: 54 },
   shareButtonText: { color: '#FFF', fontSize: 17, fontWeight: '700', marginLeft: 10 },
+
+  meetingHint: { fontSize: 13, color: '#999', marginBottom: 8 },
+  meetingInput: { backgroundColor: '#F5F7FA', borderRadius: 10, borderWidth: 1, borderColor: '#E0E0E0', padding: 12, fontSize: 15, color: '#333', minHeight: 60, textAlignVertical: 'top' },
+  meetingCharCount: { fontSize: 11, color: '#999', textAlign: 'right', marginTop: 4 },
 });
