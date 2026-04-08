@@ -21,6 +21,7 @@ load_dotenv(ROOT_DIR / '.env')
 
 JWT_SECRET = os.environ.get('JWT_SECRET', 'studymatch-secret-key-change-in-production')
 JWT_ALGORITHM = "HS256"
+MAPS_API_KEY = os.environ.get('Maps_API_KEY', '')
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -1217,14 +1218,27 @@ async def share_location(request: Request):
     user = await get_current_user(request)
     body = await request.json()
     location_id = body.get("location_id")
+    # Support sharing Google Places results too
+    place_data = body.get("place_data")
 
-    if not location_id:
-        raise HTTPException(status_code=400, detail="location_id is required")
+    if not location_id and not place_data:
+        raise HTTPException(status_code=400, detail="location_id or place_data is required")
 
-    # Get location
-    location = await db.study_locations.find_one({"location_id": location_id}, {"_id": 0})
-    if not location:
-        raise HTTPException(status_code=404, detail="Location not found")
+    if place_data:
+        # Sharing a Google Places result
+        location_name = place_data.get("name", "Unknown Location")
+        location_address = place_data.get("address", "")
+        location_type = place_data.get("type", "place")
+        hours_text = place_data.get("opening_hours", "Check online")
+    else:
+        # Sharing a seeded location
+        location = await db.study_locations.find_one({"location_id": location_id}, {"_id": 0})
+        if not location:
+            raise HTTPException(status_code=404, detail="Location not found")
+        location_name = location["name"]
+        location_address = location["address"]
+        location_type = location["type"]
+        hours_text = location.get("opening_hours", {}).get("weekday", "N/A")
 
     # Check user has a group
     if not user.get("group_id"):
@@ -1236,16 +1250,13 @@ async def share_location(request: Request):
         "group_id": user["group_id"],
         "sender_id": user["user_id"],
         "sender_name": user.get("name", "Unknown"),
-        "content": f"📍 Meet Me Here!\n\n{location['name']}\n{location['address']}\n\nType: {location['type'].replace('_', ' ').title()}\nHours: {location['opening_hours'].get('weekday', 'N/A')}",
+        "content": f"📍 Meet Me Here!\n\n{location_name}\n{location_address}\n\nType: {location_type.replace('_', ' ').title()}\nHours: {hours_text}",
         "message_type": "location_share",
-        "location_data": {
-            "location_id": location["location_id"],
-            "name": location["name"],
-            "address": location["address"],
-            "type": location["type"],
-            "latitude": location.get("latitude"),
-            "longitude": location.get("longitude"),
-            "opening_hours": location.get("opening_hours"),
+        "location_data": place_data or {
+            "location_id": location_id,
+            "name": location_name,
+            "address": location_address,
+            "type": location_type,
         },
         "created_at": datetime.now(timezone.utc),
     }
@@ -1254,6 +1265,121 @@ async def share_location(request: Request):
     message.pop("_id", None)
 
     return {"message": "Location shared to group chat!", "chat_message": message}
+
+# ==================== GOOGLE PLACES API PROXY ====================
+
+@api_router.get("/places/autocomplete")
+async def places_autocomplete(q: str = "", types: str = ""):
+    """Google Places Autocomplete - returns predictions as user types"""
+    if not q or len(q) < 2:
+        return {"predictions": []}
+
+    if not MAPS_API_KEY:
+        raise HTTPException(status_code=500, detail="Google Maps API key not configured")
+
+    params = {
+        "input": q,
+        "key": MAPS_API_KEY,
+    }
+    if types:
+        params["types"] = types
+
+    try:
+        resp = requests.get(
+            "https://maps.googleapis.com/maps/api/place/autocomplete/json",
+            params=params,
+            timeout=5,
+        )
+        data = resp.json()
+
+        if data.get("status") not in ("OK", "ZERO_RESULTS"):
+            logger.error(f"Places Autocomplete error: {data.get('status')} - {data.get('error_message', '')}")
+            return {"predictions": [], "error": data.get("error_message", data.get("status"))}
+
+        predictions = []
+        for p in data.get("predictions", []):
+            predictions.append({
+                "place_id": p["place_id"],
+                "name": p.get("structured_formatting", {}).get("main_text", p["description"]),
+                "description": p["description"],
+                "types": p.get("types", []),
+            })
+
+        return {"predictions": predictions}
+    except Exception as e:
+        logger.error(f"Places Autocomplete exception: {e}")
+        return {"predictions": [], "error": str(e)}
+
+
+@api_router.get("/places/details/{place_id}")
+async def place_details(place_id: str):
+    """Get full details for a Google Place by place_id"""
+    if not MAPS_API_KEY:
+        raise HTTPException(status_code=500, detail="Google Maps API key not configured")
+
+    fields = "name,formatted_address,geometry,opening_hours,types,rating,user_ratings_total,business_status,formatted_phone_number,website,photos"
+
+    try:
+        resp = requests.get(
+            "https://maps.googleapis.com/maps/api/place/details/json",
+            params={"place_id": place_id, "fields": fields, "key": MAPS_API_KEY},
+            timeout=5,
+        )
+        data = resp.json()
+
+        if data.get("status") != "OK":
+            logger.error(f"Place Details error: {data.get('status')} - {data.get('error_message', '')}")
+            raise HTTPException(status_code=404, detail="Place not found")
+
+        result = data["result"]
+        location = result.get("geometry", {}).get("location", {})
+
+        # Build photo URL if available
+        photo_url = None
+        photos = result.get("photos", [])
+        if photos:
+            photo_ref = photos[0].get("photo_reference")
+            if photo_ref:
+                photo_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference={photo_ref}&key={MAPS_API_KEY}"
+
+        # Parse opening hours
+        hours = result.get("opening_hours", {})
+        weekday_text = hours.get("weekday_text", [])
+        is_open = hours.get("open_now")
+
+        # Determine type label
+        goog_types = result.get("types", [])
+        if "library" in goog_types:
+            place_type = "library"
+        elif "cafe" in goog_types or "coffee" in " ".join(goog_types):
+            place_type = "cafe"
+        elif "university" in goog_types or "school" in goog_types:
+            place_type = "university"
+        elif "book_store" in goog_types:
+            place_type = "library"
+        else:
+            place_type = "study_spot"
+
+        return {
+            "place_id": place_id,
+            "name": result.get("name", ""),
+            "address": result.get("formatted_address", ""),
+            "type": place_type,
+            "latitude": location.get("lat"),
+            "longitude": location.get("lng"),
+            "rating": result.get("rating"),
+            "total_ratings": result.get("user_ratings_total"),
+            "is_open_now": is_open,
+            "opening_hours": weekday_text,
+            "phone": result.get("formatted_phone_number"),
+            "website": result.get("website"),
+            "photo_url": photo_url,
+            "business_status": result.get("business_status"),
+            "google_types": goog_types,
+        }
+    except Exception as e:
+        logger.error(f"Place Details exception: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch place details")
 
 
 app.include_router(api_router)
