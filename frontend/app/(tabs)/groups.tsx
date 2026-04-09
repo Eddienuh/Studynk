@@ -10,6 +10,7 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
+  Share,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -139,6 +140,18 @@ export default function GroupsScreen() {
 
   const handleRemoveInvite = (email: string) => {
     setInviteList(prev => prev.filter(e => e !== email));
+  };
+
+  const handleShareGroup = async () => {
+    if (!group) return;
+    const APP_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://studymatch.app';
+    try {
+      await Share.share({
+        message: `Join my study group on StudyMatch! Click here to join the session: ${APP_URL}/join/${group.group_id}`,
+      });
+    } catch (error) {
+      console.error('Share error:', error);
+    }
   };
 
   const renderCreateModal = () => (
@@ -272,12 +285,17 @@ export default function GroupsScreen() {
     >
       <View style={styles.header}>
         <Text style={styles.title}>Your Study Group</Text>
-        <TouchableOpacity
-          style={[styles.createBtn, styles.createBtnDisabled]}
-          onPress={() => Alert.alert('Already in a group', 'Leave your current group first to create a new one.')}
-        >
-          <Ionicons name="add" size={24} color="#FFF" />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.shareBtn} onPress={handleShareGroup}>
+            <Ionicons name="share-social-outline" size={22} color="#2DAFE3" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.createBtn, styles.createBtnDisabled]}
+            onPress={() => Alert.alert('Already in a group', 'Leave your current group first to create a new one.')}
+          >
+            <Ionicons name="add" size={24} color="#FFF" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.compatibilityCard}>
@@ -406,6 +424,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#B0BEC5',
     shadowColor: '#000',
     shadowOpacity: 0.1,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  shareBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#E0F7FA',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyState: {
     flex: 1,
