@@ -265,6 +265,14 @@ async def register(request: Request):
     if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
         raise HTTPException(status_code=400, detail="Invalid email format")
 
+    # Restrict to university emails only
+    allowed_domains = ('.ac.uk', '.edu')
+    if not any(email.endswith(d) for d in allowed_domains):
+        raise HTTPException(
+            status_code=400,
+            detail="Please use your University email to ensure community safety."
+        )
+
     # Check if user already exists
     existing = await db.users.find_one({"email": email})
     if existing:
@@ -302,6 +310,7 @@ async def register(request: Request):
         "rematch_count_this_week": 0,
         "gdpr_consent": gdpr_consent,
         "gdpr_consent_date": datetime.now(timezone.utc) if gdpr_consent else None,
+        "is_verified": False,
         "created_at": datetime.now(timezone.utc),
     }
 
@@ -327,6 +336,26 @@ async def register(request: Request):
     user_data = {k: v for k, v in new_user.items() if k not in ("password_hash", "_id")}
 
     return {"user": user_data, "token": session_token}
+
+@api_router.post("/auth/verify-code")
+async def verify_code(request: Request):
+    """Verify student account with a 4-digit code"""
+    user = await get_current_user(request)
+    body = await request.json()
+    code = body.get("code", "")
+
+    # Hardcoded verification code for MVP
+    VALID_CODE = "1234"
+
+    if str(code).strip() != VALID_CODE:
+        raise HTTPException(status_code=400, detail="Invalid verification code. Please try again.")
+
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"is_verified": True}}
+    )
+
+    return {"message": "Account verified successfully!", "is_verified": True}
 
 @api_router.post("/auth/login")
 async def login(request: Request):
@@ -900,7 +929,7 @@ async def get_my_group(request: Request):
     # Get member details
     members = await db.users.find(
         {"user_id": {"$in": group["members"]}},
-        {"_id": 0, "user_id": 1, "name": 1, "picture": 1, "study_style": 1}
+        {"_id": 0, "user_id": 1, "name": 1, "picture": 1, "study_style": 1, "is_verified": 1}
     ).to_list(10)
     
     return {

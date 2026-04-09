@@ -180,11 +180,25 @@ export default function GroupsScreen() {
                 <Text style={styles.memberInit}>{member.name.charAt(0).toUpperCase()}</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.memberName}>{member.name}</Text>
+                <View style={styles.memberNameRow}>
+                  <Text style={styles.memberName}>{member.name}</Text>
+                  {member.is_verified && (
+                    <View style={styles.verifiedBadge}>
+                      <Ionicons name="shield-checkmark" size={14} color="#43A047" />
+                    </View>
+                  )}
+                </View>
                 <Text style={styles.memberSub}>{member.study_style || 'Active'}</Text>
               </View>
-              {member.user_id === user?.user_id && (
+              {member.user_id === user?.user_id ? (
                 <View style={styles.youTag}><Text style={styles.youTagText}>You</Text></View>
+              ) : (
+                <TouchableOpacity
+                  onPress={() => Alert.alert('Reported to Admin', `${member.name} has been reported. Our team will review this.`)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="flag-outline" size={18} color="#CCC" />
+                </TouchableOpacity>
               )}
             </View>
           ))}
@@ -443,6 +457,8 @@ const styles = StyleSheet.create({
   },
   memberInit: { fontSize: 18, fontWeight: '700', color: '#FFF' },
   memberName: { fontSize: 16, fontWeight: '600', color: '#333' },
+  memberNameRow: { flexDirection: 'row', alignItems: 'center' },
+  verifiedBadge: { marginLeft: 6 },
   memberSub: { fontSize: 13, color: '#888', marginTop: 1 },
   youTag: { backgroundColor: '#E0F7FA', paddingVertical: 3, paddingHorizontal: 10, borderRadius: 10 },
   youTagText: { fontSize: 12, fontWeight: '600', color: '#2DAFE3' },

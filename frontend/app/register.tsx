@@ -40,6 +40,14 @@ export default function RegisterScreen() {
       setError('Please enter your email');
       return;
     }
+
+    // University email restriction
+    const emailLower = email.trim().toLowerCase();
+    if (!emailLower.endsWith('.ac.uk') && !emailLower.endsWith('.edu')) {
+      setError('Please use your University email to ensure community safety.');
+      return;
+    }
+
     if (password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
@@ -60,7 +68,7 @@ export default function RegisterScreen() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim(),
-          email: email.trim().toLowerCase(),
+          email: emailLower,
           password,
           gdpr_consent: gdprConsent,
         }),
@@ -74,7 +82,7 @@ export default function RegisterScreen() {
       }
 
       await login(data.user, data.token);
-      router.replace('/onboarding');
+      router.replace('/verify-account');
     } catch (err) {
       setError('Network error. Please try again.');
     } finally {
@@ -132,7 +140,7 @@ export default function RegisterScreen() {
                 style={styles.input}
                 value={email}
                 onChangeText={setEmail}
-                placeholder="Enter your email"
+                placeholder="your.name@university.ac.uk"
                 placeholderTextColor="#999"
                 keyboardType="email-address"
                 autoCapitalize="none"
