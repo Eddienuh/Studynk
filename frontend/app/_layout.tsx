@@ -3,8 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Stack } from 'expo-router';
 import { AuthProvider } from '../contexts/AuthContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
-import { PostHogProvider } from 'posthog-react-native';
-import { isMaintenanceMode, POSTHOG_API_KEY, POSTHOG_HOST } from '../config/appConfig';
+import { isMaintenanceMode } from '../config/appConfig';
 import { Ionicons } from '@expo/vector-icons';
 
 function MaintenanceScreen() {
@@ -28,10 +27,6 @@ export default function RootLayout() {
   }
 
   return (
-    <PostHogProvider
-      apiKey={POSTHOG_API_KEY}
-      options={{ host: POSTHOG_HOST }}
-    >
       <LanguageProvider>
         <AuthProvider>
           <Stack screenOptions={{ headerShown: false }}>
@@ -54,6 +49,5 @@ export default function RootLayout() {
           </Stack>
         </AuthProvider>
       </LanguageProvider>
-    </PostHogProvider>
   );
 }

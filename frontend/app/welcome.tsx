@@ -3,14 +3,13 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { usePostHog } from 'posthog-react-native';
+import { capture } from '../config/analytics';
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const posthog = usePostHog();
 
   useEffect(() => {
-    posthog?.capture('Landing_Page_View');
+    capture('Landing_Page_View');
   }, []);
 
   return (

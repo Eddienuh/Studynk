@@ -358,16 +358,26 @@ export default function ProfileScreen() {
         <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount} disabled={deleting}>
-        {deleting ? (
-          <ActivityIndicator color="#E53935" size="small" />
-        ) : (
-          <>
-            <Ionicons name="trash-outline" size={18} color="#E53935" />
-            <Text style={styles.deleteText}>Delete Account</Text>
-          </>
-        )}
-      </TouchableOpacity>
+      {/* Legal & Safety */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Legal & Safety</Text>
+        <View style={styles.card}>
+          <View style={styles.legalRow}>
+            <Ionicons name="time-outline" size={20} color="#888" />
+            <Text style={styles.legalText}>Accounts inactive for 24 months will be deleted.</Text>
+          </View>
+          <TouchableOpacity style={styles.deleteAccountBtn} onPress={handleDeleteAccount} disabled={deleting}>
+            {deleting ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
+              <>
+                <Ionicons name="trash-outline" size={18} color="#FFF" />
+                <Text style={styles.deleteAccountBtnText}>Delete My Account</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>StudyMatch v1.0</Text>
@@ -529,6 +539,36 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#E53935',
     marginLeft: 6,
+  },
+  legalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  legalText: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 10,
+    flex: 1,
+    lineHeight: 20,
+  },
+  deleteAccountBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E53935',
+    paddingVertical: 14,
+    borderRadius: 10,
+    marginTop: 16,
+    minHeight: 48,
+  },
+  deleteAccountBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   footer: {
     alignItems: 'center',

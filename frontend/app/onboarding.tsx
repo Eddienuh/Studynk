@@ -1,4 +1,4 @@
-import { usePostHog } from 'posthog-react-native';
+import { capture } from '../config/analytics';
 import React, { useState } from 'react';
 import {
   View,
@@ -22,7 +22,6 @@ const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 export default function OnboardingScreen() {
   const router = useRouter();
   const { user, refreshUser, token } = useAuth();
-  const posthog = usePostHog();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     university: '',
@@ -70,7 +69,7 @@ export default function OnboardingScreen() {
       });
 
       if (response.ok) {
-        posthog?.capture('Onboarding_Finished');
+        capture('Onboarding_Finished');
         await refreshUser();
         router.replace('/choose-plan');
       } else {
