@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
   RefreshControl,
   Alert,
+  Modal,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +19,10 @@ export default function GroupsScreen() {
   const [group, setGroup] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newCourse, setNewCourse] = useState('');
+  const [newLocation, setNewLocation] = useState('');
 
   const fetchGroup = async () => {
     try {
@@ -74,19 +81,99 @@ export default function GroupsScreen() {
     );
   };
 
+  const handleCreateGroup = async () => {
+    if (!newCourse.trim()) {
+      Alert.alert('Required', 'Please enter a course name.');
+      return;
+    }
+    setCreating(true);
+    try {
+      const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+      const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/groups/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ course: newCourse.trim(), location: newLocation.trim() }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setShowCreateModal(false);
+        setNewCourse('');
+        setNewLocation('');
+        Alert.alert('Success', 'Study group created!');
+        await fetchGroup();
+      } else {
+        Alert.alert('Error', data.detail || 'Failed to create group');
+      }
+    } catch (error) {
+      console.error('Create group error:', error);
+      Alert.alert('Error', 'Something went wrong');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const renderCreateModal = () => (
+    <Modal visible={showCreateModal} transparent animationType="slide">
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalCard}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>New Study Group</Text>
+            <TouchableOpacity onPress={() => setShowCreateModal(false)}>
+              <Ionicons name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.modalLabel}>Course / Module</Text>
+          <TextInput
+            style={styles.modalInput}
+            value={newCourse}
+            onChangeText={setNewCourse}
+            placeholder="e.g. Computer Science 101"
+            placeholderTextColor="#BBB"
+          />
+
+          <Text style={styles.modalLabel}>Preferred Location</Text>
+          <TextInput
+            style={styles.modalInput}
+            value={newLocation}
+            onChangeText={setNewLocation}
+            placeholder="e.g. Library, Campus Cafe"
+            placeholderTextColor="#BBB"
+          />
+
+          <TouchableOpacity
+            style={[styles.modalCreateBtn, !newCourse.trim() && { opacity: 0.5 }]}
+            onPress={handleCreateGroup}
+            disabled={creating || !newCourse.trim()}
+          >
+            {creating ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.modalCreateBtnText}>Create Group</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+
   if (!group) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Groups</Text>
+          <TouchableOpacity style={styles.createBtn} onPress={() => setShowCreateModal(true)}>
+            <Ionicons name="add" size={24} color="#FFF" />
+          </TouchableOpacity>
         </View>
         <View style={styles.emptyState}>
           <Ionicons name="people-outline" size={64} color="#CCC" />
           <Text style={styles.emptyTitle}>No Group Yet</Text>
           <Text style={styles.emptyText}>
-            Find your study group from the Home tab
+            Find your study group from the Home tab{'\n'}or create one with the + button above
           </Text>
         </View>
+        {renderCreateModal()}
       </View>
     );
   }
@@ -98,6 +185,12 @@ export default function GroupsScreen() {
     >
       <View style={styles.header}>
         <Text style={styles.title}>Your Study Group</Text>
+        <TouchableOpacity
+          style={[styles.createBtn, styles.createBtnDisabled]}
+          onPress={() => Alert.alert('Already in a group', 'Leave your current group first to create a new one.')}
+        >
+          <Ionicons name="add" size={24} color="#FFF" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.compatibilityCard}>
@@ -200,11 +293,32 @@ const styles = StyleSheet.create({
     paddingTop: 48,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#2DAFE3',
+  },
+  createBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#25D366',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#25D366',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  createBtnDisabled: {
+    backgroundColor: '#B0BEC5',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
   },
   emptyState: {
     flex: 1,
@@ -409,5 +523,59 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#E53935',
     marginLeft: 8,
+  },
+
+  /* Create Group Modal */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  modalCard: {
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 24,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#333',
+  },
+  modalLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#555',
+    marginBottom: 6,
+    marginTop: 12,
+  },
+  modalInput: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    padding: 14,
+    fontSize: 15,
+    color: '#333',
+  },
+  modalCreateBtn: {
+    backgroundColor: '#25D366',
+    paddingVertical: 15,
+    borderRadius: 14,
+    alignItems: 'center',
+    marginTop: 24,
+    minHeight: 52,
+    justifyContent: 'center',
+  },
+  modalCreateBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

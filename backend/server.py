@@ -908,6 +908,41 @@ async def get_my_group(request: Request):
         "members": members
     }
 
+
+@api_router.post("/groups/create")
+async def create_group_manually(request: Request):
+    """Create a new study group manually"""
+    user = await get_current_user(request)
+    body = await request.json()
+
+    if user.get("group_id"):
+        raise HTTPException(status_code=400, detail="You are already in a group. Leave your current group first.")
+
+    course = body.get("course", "").strip()
+    location = body.get("location", "").strip()
+
+    if not course:
+        raise HTTPException(status_code=400, detail="Course name is required")
+
+    group_id = f"group_{uuid.uuid4().hex[:12]}"
+    new_group = Group(
+        group_id=group_id,
+        course=course,
+        members=[user["user_id"]],
+        compatibility_score=100,
+        suggested_times=[],
+        suggested_location=location or "Library",
+    )
+
+    await db.groups.insert_one(new_group.model_dump())
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"group_id": group_id, "matching_status": "matched"}}
+    )
+
+    return {"message": "Group created!", "group": new_group.model_dump()}
+
+
 @api_router.post("/groups/leave")
 async def leave_group(request: Request):
     """Leave current group"""
