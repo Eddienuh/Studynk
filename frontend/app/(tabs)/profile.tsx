@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -24,6 +24,21 @@ export default function ProfileScreen() {
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [subTier, setSubTier] = useState('free');
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/subscription/status`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setSubTier(data.tier || 'free');
+        }
+      } catch {}
+    })();
+  }, []);
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -216,6 +231,34 @@ export default function ProfileScreen() {
         <TouchableOpacity onPress={showPhotoOptions} style={styles.changePhotoLink}>
           <Text style={styles.changePhotoText}>Change Photo</Text>
         </TouchableOpacity>
+      </View>
+
+      {/* Subscription Card */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Subscription</Text>
+        <View style={styles.subCard}>
+          <View style={styles.subLeft}>
+            <View style={[styles.subBadge, subTier === 'pro' ? styles.subBadgePro : subTier === 'basic' ? styles.subBadgeBasic : styles.subBadgeFree]}>
+              <Ionicons name={subTier === 'pro' ? 'diamond' : subTier === 'basic' ? 'star' : 'star-outline'} size={16} color="#FFF" />
+              <Text style={styles.subBadgeText}>
+                {subTier === 'pro' ? 'Pro' : subTier === 'basic' ? 'Basic' : 'Free'}
+              </Text>
+            </View>
+            <Text style={styles.subDesc}>
+              {subTier === 'pro'
+                ? 'All premium features unlocked'
+                : subTier === 'basic'
+                ? 'Core study matching features'
+                : 'Limited features — upgrade to unlock more'}
+            </Text>
+          </View>
+          {subTier !== 'pro' && (
+            <TouchableOpacity style={styles.upgradeBtn} onPress={() => router.push('/choose-plan')}>
+              <Ionicons name="arrow-up-circle" size={18} color="#FFF" />
+              <Text style={styles.upgradeBtnText}>Upgrade</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {user?.university && (
@@ -495,5 +538,61 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     marginBottom: 4,
+  },
+
+  /* Subscription Card */
+  subCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  subLeft: {
+    flex: 1,
+    marginRight: 12,
+  },
+  subBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginBottom: 6,
+  },
+  subBadgeFree: { backgroundColor: '#B0BEC5' },
+  subBadgeBasic: { backgroundColor: '#2DAFE3' },
+  subBadgePro: { backgroundColor: '#FF9800' },
+  subBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFF',
+    marginLeft: 4,
+  },
+  subDesc: {
+    fontSize: 13,
+    color: '#888',
+    lineHeight: 18,
+  },
+  upgradeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2DAFE3',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
+  upgradeBtnText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '700',
+    marginLeft: 6,
   },
 });
