@@ -1072,6 +1072,173 @@ async def get_streak(request: Request):
     return {"streak": streak}
 
 
+
+# ==================== MEETINGS ROUTES ====================
+
+@api_router.get("/meetings/list")
+async def list_meetings(request: Request):
+    """List meetings for user's group, split into upcoming and past"""
+    user = await get_current_user(request)
+
+    if not user.get("group_id"):
+        return {"upcoming": [], "past": []}
+
+    group = await db.groups.find_one({"group_id": user["group_id"]}, {"_id": 0})
+    if not group:
+        return {"upcoming": [], "past": []}
+
+    # Fetch meetings for this group, sorted by time
+    meetings = await db.meetings.find(
+        {"group_id": user["group_id"]},
+        {"_id": 0}
+    ).sort("meeting_time", 1).to_list(50)
+
+    # If no meetings exist, seed some sample ones for demo
+    if not meetings:
+        now = datetime.now(timezone.utc)
+        sample_meetings = [
+            {
+                "meeting_id": f"mtg_{uuid.uuid4().hex[:12]}",
+                "group_id": user["group_id"],
+                "title": "Weekly Review Session",
+                "location": group.get("suggested_location", "Library"),
+                "meeting_time": (now + timedelta(hours=2)).isoformat(),
+                "duration_minutes": 60,
+                "created_by": user["user_id"],
+                "attendees": group.get("members", []),
+                "notes": "",
+                "created_at": now.isoformat(),
+            },
+            {
+                "meeting_id": f"mtg_{uuid.uuid4().hex[:12]}",
+                "group_id": user["group_id"],
+                "title": "Exam Prep Study",
+                "location": group.get("suggested_location", "Library"),
+                "meeting_time": (now + timedelta(days=2, hours=3)).isoformat(),
+                "duration_minutes": 90,
+                "created_by": user["user_id"],
+                "attendees": group.get("members", []),
+                "notes": "",
+                "created_at": now.isoformat(),
+            },
+            {
+                "meeting_id": f"mtg_{uuid.uuid4().hex[:12]}",
+                "group_id": user["group_id"],
+                "title": "Group Discussion - Chapter 5",
+                "location": group.get("suggested_location", "Library"),
+                "meeting_time": (now - timedelta(hours=3)).isoformat(),
+                "duration_minutes": 60,
+                "created_by": user["user_id"],
+                "attendees": group.get("members", []),
+                "notes": "Covered main topics. Action items assigned.",
+                "created_at": (now - timedelta(days=1)).isoformat(),
+            },
+            {
+                "meeting_id": f"mtg_{uuid.uuid4().hex[:12]}",
+                "group_id": user["group_id"],
+                "title": "Assignment Walkthrough",
+                "location": group.get("suggested_location", "Library"),
+                "meeting_time": (now - timedelta(days=1, hours=5)).isoformat(),
+                "duration_minutes": 45,
+                "created_by": user["user_id"],
+                "attendees": group.get("members", []),
+                "notes": "Reviewed assignment requirements. Split tasks among members.",
+                "created_at": (now - timedelta(days=2)).isoformat(),
+            },
+        ]
+        for m in sample_meetings:
+            await db.meetings.insert_one(m)
+            m.pop("_id", None)
+        meetings = sample_meetings
+
+    # Split into upcoming and past
+    now = datetime.now(timezone.utc)
+    one_hour_ago = now - timedelta(hours=1)
+    upcoming = []
+    past = []
+
+    for m in meetings:
+        mt = m.get("meeting_time", "")
+        if isinstance(mt, str):
+            try:
+                meeting_dt = datetime.fromisoformat(mt.replace("Z", "+00:00"))
+            except Exception:
+                meeting_dt = now
+        else:
+            meeting_dt = mt
+
+        # Make sure meeting_dt is timezone-aware
+        if meeting_dt.tzinfo is None:
+            meeting_dt = meeting_dt.replace(tzinfo=timezone.utc)
+
+        end_time = meeting_dt + timedelta(minutes=m.get("duration_minutes", 60))
+        if end_time < one_hour_ago:
+            m["status"] = "past"
+            past.append(m)
+        else:
+            m["status"] = "upcoming"
+            upcoming.append(m)
+
+    return {"upcoming": upcoming, "past": past, "course": group.get("course", "")}
+
+
+@api_router.post("/meetings/create")
+async def create_meeting(request: Request):
+    """Create a new meeting for user's group"""
+    user = await get_current_user(request)
+    body = await request.json()
+
+    if not user.get("group_id"):
+        raise HTTPException(status_code=400, detail="You must be in a group")
+
+    title = body.get("title", "").strip()
+    location = body.get("location", "").strip()
+    meeting_time = body.get("meeting_time", "")
+    duration_minutes = body.get("duration_minutes", 60)
+
+    if not title:
+        raise HTTPException(status_code=400, detail="Title is required")
+    if not meeting_time:
+        raise HTTPException(status_code=400, detail="Meeting time is required")
+
+    group = await db.groups.find_one({"group_id": user["group_id"]}, {"_id": 0})
+
+    meeting = {
+        "meeting_id": f"mtg_{uuid.uuid4().hex[:12]}",
+        "group_id": user["group_id"],
+        "title": title,
+        "location": location or group.get("suggested_location", "Library"),
+        "meeting_time": meeting_time,
+        "duration_minutes": duration_minutes,
+        "created_by": user["user_id"],
+        "attendees": group.get("members", []) if group else [user["user_id"]],
+        "notes": "",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    await db.meetings.insert_one(meeting)
+    meeting.pop("_id", None)
+    return {"message": "Meeting created!", "meeting": meeting}
+
+
+@api_router.put("/meetings/{meeting_id}/notes")
+async def update_meeting_notes(request: Request, meeting_id: str):
+    """Update notes for a past meeting"""
+    user = await get_current_user(request)
+    body = await request.json()
+    notes = body.get("notes", "")
+
+    result = await db.meetings.update_one(
+        {"meeting_id": meeting_id},
+        {"$set": {"notes": notes}}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+
+    return {"message": "Notes updated"}
+
+
 # ==================== APP REVIEW ROUTES ====================
 
 @api_router.post("/reviews/submit")

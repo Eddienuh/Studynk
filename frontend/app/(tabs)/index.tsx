@@ -219,7 +219,7 @@ export default function HomeScreen() {
         <View style={styles.actionsGrid}>
           <TouchableOpacity 
             style={styles.actionCard}
-            onPress={() => router.push('/onboarding')}
+            onPress={() => router.push('/schedule')}
             activeOpacity={0.7}
           >
             <Ionicons name="calendar" size={32} color="#2DAFE3" />

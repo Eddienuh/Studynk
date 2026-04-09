@@ -354,6 +354,18 @@ backend:
           agent: "testing"
           comment: "App Review System working perfectly. ✅ POST /api/reviews/submit: All validation tests passed - valid reviews (rating 1-5, optional feedback) submitted successfully, invalid ratings (0, 6, missing, string) correctly return 400, unauthenticated requests return 401. ✅ GET /api/reviews/stats: Returns correct aggregate data (total_reviews, average_rating, my_reviews array), proper authentication required (401 for unauthenticated). ✅ Updated POST /api/attendance/checkin: Review prompt logic working correctly - first checkin (total_checkins=1) returns should_prompt_review=true, second checkin returns should_prompt_review=false as expected. All endpoints fully functional with proper error handling and authentication."
 
+  - task: "Meetings/Schedule endpoints"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "All meeting endpoints working perfectly. ✅ GET /api/meetings/list: Returns meetings split into upcoming/past arrays with course info, seeds 4 sample meetings if none exist, proper authentication required (401 for unauthenticated) ✅ POST /api/meetings/create: Creates meetings with valid data (title, location, meeting_time, duration_minutes), proper validation (400 for missing title/meeting_time), authentication required (401 for unauthenticated) ✅ PUT /api/meetings/{meeting_id}/notes: Updates meeting notes successfully, proper error handling (404 for invalid meeting_id). All 7 tests passed (100% success rate). Meeting system fully functional and ready for production."
+
 frontend:
   - task: "Frontend Testing"
     implemented: false
@@ -375,15 +387,17 @@ metadata:
 
 test_plan:
   current_focus:
-    - "App Review System (Star Rating + Feedback)"
+    - "Meetings/Schedule endpoints"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
     - agent: "main"
-      message: "NEW FEATURE: App Review System. Test the following: 1) POST /api/reviews/submit with {rating: 4, feedback: 'Great app!'} — should succeed and return review. 2) POST /api/reviews/submit with invalid rating (0, 6, or missing) — should return 400. 3) POST /api/reviews/submit unauthenticated — should return 401. 4) GET /api/reviews/stats — returns total_reviews, average_rating, my_reviews. 5) POST /api/attendance/checkin — verify response now includes total_checkins and should_prompt_review fields. First checkin should_prompt_review=true, second should be false. Test credentials: email=test@studymatch.com password=test123456. Backend at http://localhost:8001."
+      message: "NEW FEATURE: Meetings/Schedule system. Test: 1) GET /api/meetings/list - returns upcoming and past arrays plus course string. Seeds 4 sample meetings if none exist. 2) POST /api/meetings/create with {title, location, meeting_time, duration_minutes} - creates new meeting. 3) PUT /api/meetings/{meeting_id}/notes with {notes} - updates meeting notes. 4) All require auth (401 without). Test credentials: email=test@studymatch.com password=test123456. Backend at http://localhost:8001."
     - agent: "testing"
       message: "Testing completed for both updated endpoints. ✅ STRIPE PRICING UPDATE: All tests passed - Basic plan (£2.99, no trial) and Pro plan (£4.99, 30-day trial) checkout sessions created successfully. Invalid plan validation and authentication working correctly. ✅ LOCATION SHARE WITH MEETING NOTE: Endpoint correctly validates group membership requirement and implements meeting note functionality as specified. Both tasks are working correctly and ready for production."
     - agent: "testing"
       message: "✅ APP REVIEW SYSTEM TESTING COMPLETE: All 6 tests passed (100% success rate). POST /api/reviews/submit working perfectly with proper validation (rating 1-5, optional feedback, authentication required). GET /api/reviews/stats returning correct aggregate data. Updated POST /api/attendance/checkin correctly implements review prompt logic (first checkin triggers prompt, subsequent checkins follow 5-checkin interval rule). All endpoints have proper error handling and authentication. Feature is fully functional and ready for production use."
+    - agent: "testing"
+      message: "✅ MEETINGS/SCHEDULE SYSTEM TESTING COMPLETE: All 7 tests passed (100% success rate). GET /api/meetings/list correctly returns upcoming/past meetings with course info and seeds sample data. POST /api/meetings/create successfully creates meetings with proper validation. PUT /api/meetings/{meeting_id}/notes updates meeting notes with proper error handling. All endpoints have correct authentication requirements and error responses. Meeting system is fully functional and ready for production use."

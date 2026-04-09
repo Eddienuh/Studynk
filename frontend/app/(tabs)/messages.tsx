@@ -116,6 +116,14 @@ export default function MessagesScreen() {
         <Text style={styles.groupName}>{group.course}</Text>
       </View>
 
+      {/* Goal Pin */}
+      <View style={styles.goalPin}>
+        <Ionicons name="flag" size={16} color="#FF9800" />
+        <Text style={styles.goalText} numberOfLines={1}>
+          {group.course ? `Ace ${group.course} together!` : 'Study smarter as a group'}
+        </Text>
+      </View>
+
       <ScrollView
         ref={scrollViewRef}
         style={styles.messagesContainer}
@@ -131,6 +139,9 @@ export default function MessagesScreen() {
         ) : (
           messages.map((message) => {
             const isOwnMessage = message.sender_id === user?.user_id;
+            const isPoll = typeof message.content === 'string' && message.content.startsWith('/poll');
+            const displayContent = isPoll ? message.content.replace(/^\/poll\s*/, '') : message.content;
+
             return (
               <View
                 key={message.message_id}
@@ -146,20 +157,28 @@ export default function MessagesScreen() {
                   style={[
                     styles.messageBubble,
                     isOwnMessage ? styles.messageBubbleOwn : styles.messageBubbleOther,
+                    isPoll && styles.messageBubblePoll,
                   ]}
                 >
+                  {isPoll && (
+                    <View style={styles.pollHeader}>
+                      <Ionicons name="bar-chart-outline" size={14} color="#6A1B9A" />
+                      <Text style={styles.pollLabel}>Poll</Text>
+                    </View>
+                  )}
                   <Text
                     style={[
                       styles.messageText,
-                      isOwnMessage && styles.messageTextOwn,
+                      isOwnMessage && !isPoll && styles.messageTextOwn,
+                      isPoll && styles.messageTextPoll,
                     ]}
                   >
-                    {message.content}
+                    {displayContent}
                   </Text>
                   <Text
                     style={[
                       styles.messageTime,
-                      isOwnMessage && styles.messageTimeOwn,
+                      isOwnMessage && !isPoll && styles.messageTimeOwn,
                     ]}
                   >
                     {new Date(message.timestamp).toLocaleTimeString('en-US', {
@@ -332,5 +351,45 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: '#CCC',
+  },
+
+  /* Goal Pin */
+  goalPin: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF8E1',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFE082',
+  },
+  goalText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#F57C00',
+    marginLeft: 8,
+    flex: 1,
+  },
+
+  /* Poll styles */
+  messageBubblePoll: {
+    backgroundColor: '#F3E5F5',
+    borderLeftWidth: 3,
+    borderLeftColor: '#9C27B0',
+  },
+  pollHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  pollLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#6A1B9A',
+    marginLeft: 4,
+    textTransform: 'uppercase',
+  },
+  messageTextPoll: {
+    color: '#4A148C',
   },
 });
