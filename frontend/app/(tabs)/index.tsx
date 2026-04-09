@@ -13,6 +13,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ReviewModal from '../../components/ReviewModal';
+import { usePostHog } from 'posthog-react-native';
 
 export default function HomeScreen() {
   const { user, token } = useAuth();
@@ -23,6 +24,7 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const posthog = usePostHog();
 
   const fetchData = async () => {
     try {

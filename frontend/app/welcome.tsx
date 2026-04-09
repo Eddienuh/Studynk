@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { usePostHog } from 'posthog-react-native';
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const posthog = usePostHog();
+
+  useEffect(() => {
+    posthog?.capture('Landing_Page_View');
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -16,7 +22,7 @@ export default function WelcomeScreen() {
         />
         
         <Text style={styles.title}>StudyMatch</Text>
-        <Text style={styles.tagline}>Find the perfect study group{"\n"}for your course in seconds</Text>
+        <Text style={styles.tagline}>The Verified Way to Find{"\n"}Study Partners.</Text>
         
         <View style={styles.features}>
           <Feature icon="people" text="Match with compatible students" />
@@ -28,7 +34,7 @@ export default function WelcomeScreen() {
           style={styles.primaryButton} 
           onPress={() => router.push('/register')}
         >
-          <Text style={styles.primaryButtonText}>Create Account</Text>
+          <Text style={styles.primaryButtonText}>Get Started</Text>
           <Ionicons name="arrow-forward" size={20} color="#FFF" />
         </TouchableOpacity>
 
