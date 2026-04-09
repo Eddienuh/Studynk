@@ -918,29 +918,55 @@ async def create_group_manually(request: Request):
     if user.get("group_id"):
         raise HTTPException(status_code=400, detail="You are already in a group. Leave your current group first.")
 
+    group_name = body.get("group_name", "").strip()
     course = body.get("course", "").strip()
     location = body.get("location", "").strip()
+    invite_emails = body.get("invite_emails", [])
+    streak_enabled = body.get("streak_enabled", False)
 
-    if not course:
-        raise HTTPException(status_code=400, detail="Course name is required")
+    if not group_name:
+        raise HTTPException(status_code=400, detail="Group name is required")
 
     group_id = f"group_{uuid.uuid4().hex[:12]}"
     new_group = Group(
         group_id=group_id,
-        course=course,
+        course=course or group_name,
         members=[user["user_id"]],
         compatibility_score=100,
         suggested_times=[],
         suggested_location=location or "Library",
     )
 
-    await db.groups.insert_one(new_group.model_dump())
+    group_doc = new_group.model_dump()
+    group_doc["group_name"] = group_name
+    group_doc["streak_enabled"] = streak_enabled
+    group_doc["streak_target"] = "weekly" if streak_enabled else None
+    group_doc["invite_emails"] = invite_emails
+
+    await db.groups.insert_one(group_doc)
+    group_doc.pop("_id", None)
+
     await db.users.update_one(
         {"user_id": user["user_id"]},
         {"$set": {"group_id": group_id, "matching_status": "matched"}}
     )
 
-    return {"message": "Group created!", "group": new_group.model_dump()}
+    # Store pending invitations
+    for email in invite_emails:
+        email = email.strip().lower()
+        if email:
+            await db.group_invitations.insert_one({
+                "invitation_id": f"inv_{uuid.uuid4().hex[:12]}",
+                "group_id": group_id,
+                "group_name": group_name,
+                "invited_by": user["user_id"],
+                "invited_by_name": user.get("name", "Someone"),
+                "email": email,
+                "status": "pending",
+                "created_at": datetime.now(timezone.utc),
+            })
+
+    return {"message": "Group created!", "group": group_doc}
 
 
 @api_router.post("/groups/leave")
