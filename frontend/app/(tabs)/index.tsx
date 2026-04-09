@@ -153,65 +153,25 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {/* Group Status */}
-      {group ? (
-        <View style={styles.groupCard}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="people" size={24} color="#2DAFE3" />
-            <Text style={styles.cardTitle}>Your Study Group</Text>
-          </View>
-          
-          <View style={styles.compatibilityBadge}>
-            <Text style={styles.compatibilityText}>
-              {Math.round(group.compatibility_score)}% Compatible
-            </Text>
-          </View>
-
-          <View style={styles.membersList}>
-            {members.map((member) => (
-              <View key={member.user_id} style={styles.memberItem}>
-                <View style={styles.memberAvatar}>
-                  <Text style={styles.memberInitial}>
-                    {member.name.charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-                <View>
-                  <Text style={styles.memberName}>{member.name}</Text>
-                  <Text style={styles.memberStyle}>{member.study_style || 'Mixed'}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.groupInfo}>
-            <View style={styles.infoItem}>
-              <Ionicons name="book" size={16} color="#666" />
-              <Text style={styles.infoText}>{group.course}</Text>
-            </View>
-            <View style={styles.infoItem}>
-              <Ionicons name="location" size={16} color="#666" />
-              <Text style={styles.infoText}>{group.suggested_location}</Text>
-            </View>
-          </View>
-        </View>
-      ) : (
-        <View style={styles.noGroupCard}>
-          <Ionicons name="search" size={48} color="#2DAFE3" />
-          <Text style={styles.noGroupTitle}>Find Your Study Group</Text>
-          <Text style={styles.noGroupText}>
-            Get matched with compatible students in your course
+      {/* Find Matches */}
+      <View style={styles.noGroupCard}>
+        <Ionicons name="search" size={48} color="#2DAFE3" />
+        <Text style={styles.noGroupTitle}>Find Your Study Group</Text>
+        <Text style={styles.noGroupText}>
+          {group
+            ? 'Search for more compatible students to grow your group'
+            : 'Get matched with compatible students in your course'}
+        </Text>
+        <TouchableOpacity
+          style={styles.findButton}
+          onPress={handleFindMatch}
+          disabled={loading}
+        >
+          <Text style={styles.findButtonText}>
+            {loading ? 'Searching...' : 'Find Matches'}
           </Text>
-          <TouchableOpacity
-            style={styles.findButton}
-            onPress={handleFindMatch}
-            disabled={loading}
-          >
-            <Text style={styles.findButtonText}>
-              {loading ? 'Searching...' : 'Find Matches'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+        </TouchableOpacity>
+      </View>
 
       {/* Quick Actions */}
       <View style={styles.quickActions}>
