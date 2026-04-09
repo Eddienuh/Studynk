@@ -385,19 +385,56 @@ metadata:
   test_sequence: 1
   run_ui: false
 
+  - task: "User Search endpoint"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "GET /api/users/search endpoint working perfectly. ✅ Short queries (<2 chars) correctly return empty results ✅ Valid queries return user results excluding current user ✅ Searches by name, email, and phone number working correctly ✅ Authentication required (401 for unauthenticated requests) ✅ Phone number search tested with +447123456789 ✅ Email search tested with partial email queries. All validation and functionality working as expected."
+
+  - task: "Invitation system endpoints"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "All invitation endpoints working perfectly. ✅ GET /api/invitations/pending: Returns pending invitations array (tested with 0 invitations), requires authentication (401 for unauthenticated) ✅ POST /api/invitations/send: Correctly validates group membership requirement, validates target_user_id (400 for missing, 404 for invalid), prevents duplicate invitations, requires authentication ✅ POST /api/invitations/respond: Validates invitation_id and action parameters (400 for missing/invalid), handles non-existent invitations (404), requires authentication. All endpoints have proper error handling and validation."
+
+  - task: "Phone number in profile update"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "PUT /api/users/profile with phone_number field working perfectly. ✅ Phone number field (+447123456789) successfully accepted and stored ✅ Profile update persists phone number correctly (verified via GET /api/users/profile) ✅ Phone number searchable via GET /api/users/search endpoint ✅ All existing profile fields still working correctly. Phone number integration fully functional."
+
 test_plan:
-  current_focus:
-    - "Meetings/Schedule endpoints"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
     - agent: "main"
-      message: "NEW FEATURE: Meetings/Schedule system. Test: 1) GET /api/meetings/list - returns upcoming and past arrays plus course string. Seeds 4 sample meetings if none exist. 2) POST /api/meetings/create with {title, location, meeting_time, duration_minutes} - creates new meeting. 3) PUT /api/meetings/{meeting_id}/notes with {notes} - updates meeting notes. 4) All require auth (401 without). Test credentials: email=test@studymatch.com password=test123456. Backend at http://localhost:8001."
+      message: "NEW FEATURE: Social Layer APIs. Test: 1) GET /api/users/search?q=test — searches by name/email/phone, needs auth 2) POST /api/invitations/send with {target_user_id} — sends group invite, requires being in a group 3) GET /api/invitations/pending — returns pending invitations for current user 4) POST /api/invitations/respond with {invitation_id, action:'accept'/'decline'} — accept/decline invite 5) PUT /api/users/profile now accepts phone_number field. Test credentials: email=test@studymatch.com password=test123456. Backend at http://localhost:8001."
     - agent: "testing"
       message: "Testing completed for both updated endpoints. ✅ STRIPE PRICING UPDATE: All tests passed - Basic plan (£2.99, no trial) and Pro plan (£4.99, 30-day trial) checkout sessions created successfully. Invalid plan validation and authentication working correctly. ✅ LOCATION SHARE WITH MEETING NOTE: Endpoint correctly validates group membership requirement and implements meeting note functionality as specified. Both tasks are working correctly and ready for production."
     - agent: "testing"
       message: "✅ APP REVIEW SYSTEM TESTING COMPLETE: All 6 tests passed (100% success rate). POST /api/reviews/submit working perfectly with proper validation (rating 1-5, optional feedback, authentication required). GET /api/reviews/stats returning correct aggregate data. Updated POST /api/attendance/checkin correctly implements review prompt logic (first checkin triggers prompt, subsequent checkins follow 5-checkin interval rule). All endpoints have proper error handling and authentication. Feature is fully functional and ready for production use."
     - agent: "testing"
       message: "✅ MEETINGS/SCHEDULE SYSTEM TESTING COMPLETE: All 7 tests passed (100% success rate). GET /api/meetings/list correctly returns upcoming/past meetings with course info and seeds sample data. POST /api/meetings/create successfully creates meetings with proper validation. PUT /api/meetings/{meeting_id}/notes updates meeting notes with proper error handling. All endpoints have correct authentication requirements and error responses. Meeting system is fully functional and ready for production use."
+    - agent: "testing"
+      message: "✅ SOCIAL LAYER APIS TESTING COMPLETE: All 5 new endpoints tested successfully (100% success rate). User search endpoint working with name/email/phone search, proper authentication, and query validation. Invitation system endpoints (pending, send, respond) all working with correct validation and error handling. Phone number field successfully added to profile updates and searchable. All Social Layer features are fully functional and ready for production use."

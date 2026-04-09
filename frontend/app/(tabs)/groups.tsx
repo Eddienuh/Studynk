@@ -11,9 +11,12 @@ import {
   TextInput,
   ActivityIndicator,
   Share,
+  Linking,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export default function GroupsScreen() {
   const { user, token } = useAuth();
@@ -29,10 +32,20 @@ export default function GroupsScreen() {
   const [inviteList, setInviteList] = useState<string[]>([]);
   const [streakEnabled, setStreakEnabled] = useState(true);
 
+  // Search state
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [invitingUserId, setInvitingUserId] = useState<string | null>(null);
+
+  // Invitations state
+  const [pendingInvitations, setPendingInvitations] = useState<any[]>([]);
+  const [respondingId, setRespondingId] = useState<string | null>(null);
+
   const fetchGroup = useCallback(async () => {
     try {
-      const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
-      const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/groups/my-group`, {
+      const response = await fetch(`${BACKEND_URL}/api/groups/my-group`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (response.ok) {
@@ -45,12 +58,103 @@ export default function GroupsScreen() {
     }
   }, [token]);
 
-  useEffect(() => { fetchGroup(); }, [fetchGroup]);
+  const fetchInvitations = useCallback(async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/invitations/pending`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPendingInvitations(data.invitations || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch invitations:', error);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    fetchGroup();
+    fetchInvitations();
+  }, [fetchGroup, fetchInvitations]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchGroup();
+    await Promise.all([fetchGroup(), fetchInvitations()]);
     setRefreshing(false);
+  };
+
+  // ─── Search ───
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.length < 2) { setSearchResults([]); return; }
+    setSearching(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/users/search?q=${encodeURIComponent(query)}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data.users || []);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleInviteUser = async (targetUserId: string) => {
+    if (!group) {
+      Alert.alert('No Group', 'Create or join a group first to invite people.');
+      return;
+    }
+    setInvitingUserId(targetUserId);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/invitations/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ target_user_id: targetUserId }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        Alert.alert('Invited!', data.message);
+      } else {
+        Alert.alert('Error', data.detail || 'Failed to send invite');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Network error');
+    } finally {
+      setInvitingUserId(null);
+    }
+  };
+
+  const handleInviteViaEmail = () => {
+    const subject = encodeURIComponent('Join my Study Group on StudyMatch!');
+    const body = encodeURIComponent('Hey! I\'m using StudyMatch to find compatible study partners. Check it out and join my group!\n\nhttps://studymatch.app');
+    Linking.openURL(`mailto:?subject=${subject}&body=${body}`);
+  };
+
+  // ─── Invitation Responses ───
+  const handleRespondInvitation = async (invitationId: string, action: 'accept' | 'decline') => {
+    setRespondingId(invitationId);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/invitations/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ invitation_id: invitationId, action }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        Alert.alert(action === 'accept' ? 'Joined!' : 'Declined', data.message);
+        await Promise.all([fetchGroup(), fetchInvitations()]);
+      } else {
+        Alert.alert('Error', data.detail || 'Failed to respond');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Network error');
+    } finally {
+      setRespondingId(null);
+    }
   };
 
   const handleLeaveGroup = () => {
@@ -61,8 +165,7 @@ export default function GroupsScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
-            await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/groups/leave`, {
+            await fetch(`${BACKEND_URL}/api/groups/leave`, {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${token}` },
             });
@@ -78,7 +181,7 @@ export default function GroupsScreen() {
 
   const handleShareGroup = async () => {
     if (!group) return;
-    const APP_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://studymatch.app';
+    const APP_URL = BACKEND_URL || 'https://studymatch.app';
     try {
       await Share.share({
         message: `Join my study group on StudyMatch! Click here to join the session: ${APP_URL}/join/${group.group_id}`,
@@ -95,8 +198,7 @@ export default function GroupsScreen() {
     }
     setCreating(true);
     try {
-      const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
-      const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/groups/create`, {
+      const response = await fetch(`${BACKEND_URL}/api/groups/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -138,7 +240,6 @@ export default function GroupsScreen() {
   if (selectedGroup) {
     return (
       <ScrollView style={styles.container}>
-        {/* Detail Header */}
         <View style={styles.detailHeader}>
           <TouchableOpacity onPress={() => setSelectedGroup(null)} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color="#FFF" />
@@ -159,7 +260,6 @@ export default function GroupsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Compatibility */}
         <View style={styles.compatCard}>
           <View style={styles.scoreCircle}>
             <Text style={styles.scoreNum}>{Math.round(group?.compatibility_score || 0)}</Text>
@@ -171,7 +271,6 @@ export default function GroupsScreen() {
           </View>
         </View>
 
-        {/* Members */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Members ({members.length})</Text>
           {members.map((member) => (
@@ -205,18 +304,13 @@ export default function GroupsScreen() {
                           style: 'destructive',
                           onPress: async () => {
                             try {
-                              const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
-                              const res = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/reports/user`, {
+                              const res = await fetch(`${BACKEND_URL}/api/reports/user`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                                 body: JSON.stringify({ reported_user_id: member.user_id, reason: 'Reported from group profile' }),
                               });
-                              if (res.ok) {
-                                Alert.alert('Reported to Admin', `${member.name} has been reported. Our team will review this.`);
-                              }
-                            } catch {
-                              Alert.alert('Error', 'Failed to submit report.');
-                            }
+                              if (res.ok) Alert.alert('Reported', `${member.name} has been reported.`);
+                            } catch { Alert.alert('Error', 'Failed to submit report.'); }
                           },
                         },
                       ],
@@ -231,7 +325,6 @@ export default function GroupsScreen() {
           ))}
         </View>
 
-        {/* Details */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Group Details</Text>
           <View style={styles.detailCard}>
@@ -259,7 +352,6 @@ export default function GroupsScreen() {
           </View>
         </View>
 
-        {/* Health */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Group Health</Text>
           <View style={styles.healthCard}>
@@ -287,19 +379,122 @@ export default function GroupsScreen() {
       {/* List Header */}
       <View style={styles.listHeader}>
         <Text style={styles.listTitle}>Groups</Text>
-        <TouchableOpacity
-          style={styles.createBtn}
-          onPress={group ? () => Alert.alert('Already in a group', 'Leave your current group first.') : () => setShowCreateModal(true)}
-        >
-          <Ionicons name="add" size={24} color="#FFF" />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.searchToggleBtn}
+            onPress={() => { setShowSearch(!showSearch); setSearchQuery(''); setSearchResults([]); }}
+          >
+            <Ionicons name={showSearch ? 'close' : 'search'} size={22} color="#2DAFE3" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.createBtn}
+            onPress={group ? () => Alert.alert('Already in a group', 'Leave your current group first.') : () => setShowCreateModal(true)}
+          >
+            <Ionicons name="add" size={24} color="#FFF" />
+          </TouchableOpacity>
+        </View>
       </View>
 
+      {/* Search Bar */}
+      {showSearch && (
+        <View style={styles.searchSection}>
+          <View style={styles.searchBarRow}>
+            <Ionicons name="search" size={20} color="#999" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search by name, email, or phone..."
+              placeholderTextColor="#AAA"
+              value={searchQuery}
+              onChangeText={handleSearch}
+              autoFocus
+              autoCapitalize="none"
+            />
+            {searching && <ActivityIndicator size="small" color="#2DAFE3" />}
+          </View>
+
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <View style={styles.searchResults}>
+              {searchResults.map((u) => (
+                <View key={u.user_id} style={styles.searchResultRow}>
+                  <View style={styles.searchAvatar}>
+                    <Text style={styles.searchAvatarText}>{(u.name || '?').charAt(0).toUpperCase()}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.searchName}>{u.name}</Text>
+                    <Text style={styles.searchSub} numberOfLines={1}>{u.email}{u.phone_number ? ` · ${u.phone_number}` : ''}</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.inviteBtn}
+                    onPress={() => handleInviteUser(u.user_id)}
+                    disabled={invitingUserId === u.user_id}
+                  >
+                    {invitingUserId === u.user_id ? (
+                      <ActivityIndicator size="small" color="#FFF" />
+                    ) : (
+                      <>
+                        <Ionicons name="person-add" size={14} color="#FFF" />
+                        <Text style={styles.inviteBtnText}>Invite</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+          {searchQuery.length >= 2 && searchResults.length === 0 && !searching && (
+            <Text style={styles.noResults}>No users found</Text>
+          )}
+
+          {/* Invite via Email */}
+          <TouchableOpacity style={styles.emailInviteBtn} onPress={handleInviteViaEmail}>
+            <Ionicons name="mail-outline" size={20} color="#2DAFE3" />
+            <Text style={styles.emailInviteText}>Invite via Email</Text>
+            <Ionicons name="open-outline" size={16} color="#BBB" />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Pending Invitations */}
+      {pendingInvitations.length > 0 && (
+        <View style={styles.invitationSection}>
+          <Text style={styles.invitationHeader}>Pending Invitations</Text>
+          {pendingInvitations.map((inv) => (
+            <View key={inv.invitation_id} style={styles.invitationCard}>
+              <View style={styles.invitationInfo}>
+                <Text style={styles.invitationGroupName}>{inv.group_name}</Text>
+                <Text style={styles.invitationFrom}>From {inv.invited_by_name}</Text>
+              </View>
+              <View style={styles.invitationActions}>
+                <TouchableOpacity
+                  style={styles.acceptBtn}
+                  onPress={() => handleRespondInvitation(inv.invitation_id, 'accept')}
+                  disabled={respondingId === inv.invitation_id}
+                >
+                  {respondingId === inv.invitation_id ? (
+                    <ActivityIndicator size="small" color="#FFF" />
+                  ) : (
+                    <Text style={styles.acceptBtnText}>Join</Text>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.declineBtn}
+                  onPress={() => handleRespondInvitation(inv.invitation_id, 'decline')}
+                  disabled={respondingId === inv.invitation_id}
+                >
+                  <Ionicons name="close" size={18} color="#999" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+
       <ScrollView
-        contentContainerStyle={groups.length === 0 ? { flex: 1 } : undefined}
+        contentContainerStyle={groups.length === 0 && pendingInvitations.length === 0 ? { flex: 1 } : undefined}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {groups.length === 0 ? (
+        {groups.length === 0 && pendingInvitations.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="people-outline" size={64} color="#CCC" />
             <Text style={styles.emptyTitle}>No Groups Yet</Text>
@@ -318,7 +513,7 @@ export default function GroupsScreen() {
                   {(g.group_name || g.course || 'S').charAt(0).toUpperCase()}
                 </Text>
               </View>
-              <View style={styles.groupInfo}>
+              <View style={styles.groupInfoCol}>
                 <Text style={styles.groupName} numberOfLines={1}>{g.group_name || g.course}</Text>
                 <Text style={styles.groupPreview} numberOfLines={1}>
                   {members.length} member{members.length !== 1 ? 's' : ''} · {g.suggested_location}
@@ -408,10 +603,43 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F0F0F0',
   },
   listTitle: { fontSize: 28, fontWeight: '700', color: '#2DAFE3' },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  searchToggleBtn: {
+    width: 44, height: 44, borderRadius: 22, backgroundColor: '#E0F7FA',
+    justifyContent: 'center', alignItems: 'center',
+  },
   createBtn: {
     width: 44, height: 44, borderRadius: 22, backgroundColor: '#2DAFE3',
     justifyContent: 'center', alignItems: 'center',
   },
+
+  /* ── Search ── */
+  searchSection: { backgroundColor: '#F8F9FA', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
+  searchBarRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: '#E0E0E0' },
+  searchInput: { flex: 1, fontSize: 15, color: '#333', marginLeft: 8, padding: 0 },
+  searchResults: { marginTop: 8 },
+  searchResultRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 12, borderRadius: 10, marginBottom: 6, borderWidth: 1, borderColor: '#F0F0F0' },
+  searchAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#2DAFE3', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
+  searchAvatarText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
+  searchName: { fontSize: 15, fontWeight: '600', color: '#333' },
+  searchSub: { fontSize: 12, color: '#888', marginTop: 1 },
+  inviteBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#2DAFE3', paddingVertical: 7, paddingHorizontal: 12, borderRadius: 8, minWidth: 70, justifyContent: 'center' },
+  inviteBtnText: { color: '#FFF', fontSize: 13, fontWeight: '600', marginLeft: 4 },
+  noResults: { textAlign: 'center', color: '#999', fontSize: 14, paddingVertical: 16 },
+  emailInviteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, marginTop: 8, backgroundColor: '#FFF', borderRadius: 10, borderWidth: 1, borderColor: '#E0E0E0' },
+  emailInviteText: { fontSize: 15, color: '#2DAFE3', fontWeight: '600', marginLeft: 8, marginRight: 6 },
+
+  /* ── Invitations ── */
+  invitationSection: { paddingHorizontal: 16, paddingTop: 12, backgroundColor: '#FFF8E1' },
+  invitationHeader: { fontSize: 14, fontWeight: '700', color: '#F57F17', marginBottom: 8 },
+  invitationCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 12, borderRadius: 12, marginBottom: 8, borderWidth: 1, borderColor: '#FFE082' },
+  invitationInfo: { flex: 1 },
+  invitationGroupName: { fontSize: 15, fontWeight: '700', color: '#333' },
+  invitationFrom: { fontSize: 12, color: '#888', marginTop: 2 },
+  invitationActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  acceptBtn: { backgroundColor: '#43A047', paddingVertical: 7, paddingHorizontal: 16, borderRadius: 8, minWidth: 56, justifyContent: 'center', alignItems: 'center' },
+  acceptBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  declineBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F5F5F5', justifyContent: 'center', alignItems: 'center' },
 
   /* ── WhatsApp Group Row ── */
   groupRow: {
@@ -424,7 +652,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
   },
   groupAvatarText: { fontSize: 22, fontWeight: '700', color: '#FFF' },
-  groupInfo: { flex: 1, marginLeft: 14 },
+  groupInfoCol: { flex: 1, marginLeft: 14 },
   groupName: { fontSize: 17, fontWeight: '600', color: '#1A1A2E' },
   groupPreview: { fontSize: 14, color: '#888', marginTop: 2 },
   groupMeta: { alignItems: 'flex-end' },

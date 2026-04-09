@@ -745,7 +745,8 @@ async def update_profile(request: Request, profile_data: Dict[str, Any]):
     # Validate and update fields
     allowed_fields = [
         "university", "course", "study_style", "grade_goal",
-        "location_preference", "weekly_availability", "work_ethic"
+        "location_preference", "weekly_availability", "work_ethic",
+        "phone_number"
     ]
     
     update_data = {k: v for k, v in profile_data.items() if k in allowed_fields}
@@ -769,6 +770,129 @@ async def get_profile(request: Request):
     """Get current user's profile"""
     user = await get_current_user(request)
     return user
+
+
+@api_router.get("/users/search")
+async def search_users(request: Request, q: str = ""):
+    """Search users by name, email, or phone number"""
+    user = await get_current_user(request)
+    if not q or len(q) < 2:
+        return {"users": []}
+
+    regex = {"$regex": q, "$options": "i"}
+    results = await db.users.find(
+        {
+            "user_id": {"$ne": user["user_id"]},
+            "$or": [
+                {"name": regex},
+                {"email": regex},
+                {"phone_number": regex},
+            ],
+        },
+        {"_id": 0, "password_hash": 0},
+    ).to_list(20)
+
+    return {"users": results}
+
+
+@api_router.get("/invitations/pending")
+async def get_pending_invitations(request: Request):
+    """Get pending invitations for the current user"""
+    user = await get_current_user(request)
+    invitations = await db.group_invitations.find(
+        {"email": user["email"], "status": "pending"},
+        {"_id": 0},
+    ).to_list(50)
+    return {"invitations": invitations}
+
+
+@api_router.post("/invitations/send")
+async def send_invitation(request: Request, body: Dict[str, Any]):
+    """Send a group invitation to a user"""
+    user = await get_current_user(request)
+    target_user_id = body.get("target_user_id")
+    if not target_user_id:
+        raise HTTPException(status_code=400, detail="target_user_id required")
+
+    if not user.get("group_id"):
+        raise HTTPException(status_code=400, detail="You must be in a group to invite")
+
+    target = await db.users.find_one({"user_id": target_user_id}, {"_id": 0})
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Check if already invited
+    existing = await db.group_invitations.find_one({
+        "email": target["email"],
+        "group_id": user["group_id"],
+        "status": "pending",
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="User already invited")
+
+    group = await db.groups.find_one({"group_id": user["group_id"]}, {"_id": 0})
+    await db.group_invitations.insert_one({
+        "invitation_id": f"inv_{uuid.uuid4().hex[:12]}",
+        "group_id": user["group_id"],
+        "group_name": group.get("group_name", group.get("course", "Study Group")),
+        "invited_by": user["user_id"],
+        "invited_by_name": user.get("name", "Someone"),
+        "email": target["email"],
+        "target_user_id": target_user_id,
+        "status": "pending",
+        "created_at": datetime.now(timezone.utc),
+    })
+
+    return {"message": f"Invitation sent to {target.get('name', target['email'])}"}
+
+
+@api_router.post("/invitations/respond")
+async def respond_invitation(request: Request, body: Dict[str, Any]):
+    """Accept or decline a group invitation"""
+    user = await get_current_user(request)
+    invitation_id = body.get("invitation_id")
+    action = body.get("action")  # 'accept' or 'decline'
+
+    if not invitation_id or action not in ("accept", "decline"):
+        raise HTTPException(status_code=400, detail="invitation_id and action (accept/decline) required")
+
+    inv = await db.group_invitations.find_one({
+        "invitation_id": invitation_id,
+        "email": user["email"],
+        "status": "pending",
+    })
+    if not inv:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+
+    if action == "decline":
+        await db.group_invitations.update_one(
+            {"invitation_id": invitation_id},
+            {"$set": {"status": "declined"}},
+        )
+        return {"message": "Invitation declined"}
+
+    # Accept: add user to group
+    if user.get("group_id"):
+        raise HTTPException(status_code=400, detail="Leave your current group first")
+
+    group = await db.groups.find_one({"group_id": inv["group_id"]})
+    if not group:
+        raise HTTPException(status_code=404, detail="Group no longer exists")
+
+    await db.groups.update_one(
+        {"group_id": inv["group_id"]},
+        {"$addToSet": {"members": user["user_id"]}},
+    )
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"group_id": inv["group_id"], "matching_status": "matched"}},
+    )
+    await db.group_invitations.update_one(
+        {"invitation_id": invitation_id},
+        {"$set": {"status": "accepted"}},
+    )
+
+    return {"message": f"Joined {inv.get('group_name', 'the group')}!"}
 
 # ==================== MATCHING ALGORITHM ====================
 
