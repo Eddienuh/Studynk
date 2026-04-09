@@ -1329,6 +1329,38 @@ async def update_meeting_notes(request: Request, meeting_id: str):
     return {"message": "Notes updated"}
 
 
+
+# ==================== REPORT USER ROUTES ====================
+
+@api_router.post("/reports/user")
+async def report_user(request: Request):
+    """Report a user — logs to DB for admin review"""
+    user = await get_current_user(request)
+    body = await request.json()
+
+    reported_user_id = body.get("reported_user_id", "")
+    reason = body.get("reason", "").strip()
+
+    if not reported_user_id:
+        raise HTTPException(status_code=400, detail="reported_user_id is required")
+
+    report = {
+        "report_id": f"rpt_{uuid.uuid4().hex[:12]}",
+        "reporter_id": user["user_id"],
+        "reporter_name": user.get("name", "Unknown"),
+        "reported_user_id": reported_user_id,
+        "reason": reason or "No reason provided",
+        "group_id": user.get("group_id"),
+        "created_at": datetime.now(timezone.utc),
+    }
+
+    await db.user_reports.insert_one(report)
+    report.pop("_id", None)
+    logger.info(f"User report: {user['user_id']} reported {reported_user_id} — {reason}")
+
+    return {"message": "Report submitted. Our team will review this.", "report_id": report["report_id"]}
+
+
 # ==================== APP REVIEW ROUTES ====================
 
 @api_router.post("/reviews/submit")

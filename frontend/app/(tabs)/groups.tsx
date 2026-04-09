@@ -194,7 +194,34 @@ export default function GroupsScreen() {
                 <View style={styles.youTag}><Text style={styles.youTagText}>You</Text></View>
               ) : (
                 <TouchableOpacity
-                  onPress={() => Alert.alert('Reported to Admin', `${member.name} has been reported. Our team will review this.`)}
+                  onPress={() => {
+                    Alert.alert(
+                      'Report User',
+                      `Report ${member.name} for suspicious behaviour?`,
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        {
+                          text: 'Report',
+                          style: 'destructive',
+                          onPress: async () => {
+                            try {
+                              const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+                              const res = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/reports/user`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                body: JSON.stringify({ reported_user_id: member.user_id, reason: 'Reported from group profile' }),
+                              });
+                              if (res.ok) {
+                                Alert.alert('Reported to Admin', `${member.name} has been reported. Our team will review this.`);
+                              }
+                            } catch {
+                              Alert.alert('Error', 'Failed to submit report.');
+                            }
+                          },
+                        },
+                      ],
+                    );
+                  }}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <Ionicons name="flag-outline" size={18} color="#CCC" />

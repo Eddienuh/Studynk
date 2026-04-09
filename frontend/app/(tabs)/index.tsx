@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -61,6 +62,18 @@ export default function HomeScreen() {
   };
 
   const handleFindMatch = async () => {
+    // One-time safety toast on first use
+    const hasSeenSafety = await AsyncStorage.getItem('safety_toast_shown');
+    if (!hasSeenSafety) {
+      await AsyncStorage.setItem('safety_toast_shown', 'true');
+      Alert.alert(
+        'Safety First',
+        'Always meet in public university spaces. Report any suspicious profiles.',
+        [{ text: 'Got it', style: 'default' }],
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
