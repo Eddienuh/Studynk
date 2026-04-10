@@ -20,7 +20,7 @@ export default function WelcomeScreen() {
           style={styles.logo}
         />
         
-        <Text style={styles.title}>StudyMatch</Text>
+        <Text style={styles.title}>Studynk</Text>
         <Text style={styles.tagline}>The Verified Way to Find{"\n"}Study Partners.</Text>
         
         <View style={styles.features}>

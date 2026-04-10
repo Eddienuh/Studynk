@@ -10,7 +10,7 @@ function MaintenanceScreen() {
   return (
     <View style={mStyles.container}>
       <Ionicons name="construct" size={64} color="#2DAFE3" />
-      <Text style={mStyles.title}>StudyMatch is updating.</Text>
+      <Text style={mStyles.title}>Studynk is updating.</Text>
       <Text style={mStyles.sub}>Be back soon!</Text>
     </View>
   );
