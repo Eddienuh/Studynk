@@ -329,21 +329,21 @@ export default function GroupsScreen() {
           <Text style={styles.sectionTitle}>Group Details</Text>
           <View style={styles.detailCard}>
             <View style={styles.detailRow}>
-              <Ionicons name="book" size={20} color="#1A365D" />
+              <Ionicons name="book" size={20} color="#2DAFE3" />
               <View style={styles.detailContent}>
                 <Text style={styles.detailLabel}>Course</Text>
                 <Text style={styles.detailValue}>{group?.course}</Text>
               </View>
             </View>
             <View style={styles.detailRow}>
-              <Ionicons name="location" size={20} color="#1A365D" />
+              <Ionicons name="location" size={20} color="#2DAFE3" />
               <View style={styles.detailContent}>
                 <Text style={styles.detailLabel}>Location</Text>
                 <Text style={styles.detailValue}>{group?.suggested_location}</Text>
               </View>
             </View>
             <View style={[styles.detailRow, { borderBottomWidth: 0 }]}>
-              <Ionicons name="calendar" size={20} color="#1A365D" />
+              <Ionicons name="calendar" size={20} color="#2DAFE3" />
               <View style={styles.detailContent}>
                 <Text style={styles.detailLabel}>Created</Text>
                 <Text style={styles.detailValue}>{new Date(group?.created_at).toLocaleDateString()}</Text>
@@ -384,7 +384,7 @@ export default function GroupsScreen() {
             style={styles.searchToggleBtn}
             onPress={() => { setShowSearch(!showSearch); setSearchQuery(''); setSearchResults([]); }}
           >
-            <Ionicons name={showSearch ? 'close' : 'search'} size={22} color="#1A365D" />
+            <Ionicons name={showSearch ? 'close' : 'search'} size={22} color="#2DAFE3" />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.createBtn}
@@ -409,7 +409,7 @@ export default function GroupsScreen() {
               autoFocus
               autoCapitalize="none"
             />
-            {searching && <ActivityIndicator size="small" color="#1A365D" />}
+            {searching && <ActivityIndicator size="small" color="#2DAFE3" />}
           </View>
 
           {/* Search Results */}
@@ -448,7 +448,7 @@ export default function GroupsScreen() {
 
           {/* Invite via Email */}
           <TouchableOpacity style={styles.emailInviteBtn} onPress={handleInviteViaEmail}>
-            <Ionicons name="mail-outline" size={20} color="#1A365D" />
+            <Ionicons name="mail-outline" size={20} color="#2DAFE3" />
             <Text style={styles.emailInviteText}>Invite via Email</Text>
             <Ionicons name="open-outline" size={16} color="#BBB" />
           </TouchableOpacity>
@@ -602,14 +602,14 @@ const styles = StyleSheet.create({
     paddingTop: 48, paddingBottom: 16, paddingHorizontal: 20,
     backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F0F0F0',
   },
-  listTitle: { fontSize: 28, fontWeight: '700', color: '#1A365D' },
+  listTitle: { fontSize: 28, fontWeight: '700', color: '#2DAFE3' },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   searchToggleBtn: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: '#EBF0F7',
+    width: 44, height: 44, borderRadius: 22, backgroundColor: '#E0F7FA',
     justifyContent: 'center', alignItems: 'center',
   },
   createBtn: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: '#1A365D',
+    width: 44, height: 44, borderRadius: 22, backgroundColor: '#2DAFE3',
     justifyContent: 'center', alignItems: 'center',
   },
 
@@ -619,15 +619,15 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 15, color: '#333', marginLeft: 8, padding: 0 },
   searchResults: { marginTop: 8 },
   searchResultRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 12, borderRadius: 10, marginBottom: 6, borderWidth: 1, borderColor: '#F0F0F0' },
-  searchAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#1A365D', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
+  searchAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#2DAFE3', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
   searchAvatarText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
   searchName: { fontSize: 15, fontWeight: '600', color: '#333' },
   searchSub: { fontSize: 12, color: '#888', marginTop: 1 },
-  inviteBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A365D', paddingVertical: 7, paddingHorizontal: 12, borderRadius: 8, minWidth: 70, justifyContent: 'center' },
+  inviteBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#2DAFE3', paddingVertical: 7, paddingHorizontal: 12, borderRadius: 8, minWidth: 70, justifyContent: 'center' },
   inviteBtnText: { color: '#FFF', fontSize: 13, fontWeight: '600', marginLeft: 4 },
   noResults: { textAlign: 'center', color: '#999', fontSize: 14, paddingVertical: 16 },
   emailInviteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, marginTop: 8, backgroundColor: '#FFF', borderRadius: 10, borderWidth: 1, borderColor: '#E0E0E0' },
-  emailInviteText: { fontSize: 15, color: '#1A365D', fontWeight: '600', marginLeft: 8, marginRight: 6 },
+  emailInviteText: { fontSize: 15, color: '#2DAFE3', fontWeight: '600', marginLeft: 8, marginRight: 6 },
 
   /* ── Invitations ── */
   invitationSection: { paddingHorizontal: 16, paddingTop: 12, backgroundColor: '#FFF8E1' },
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5, borderBottomColor: '#F0F0F0',
   },
   groupAvatar: {
-    width: 52, height: 52, borderRadius: 26, backgroundColor: '#1A365D',
+    width: 52, height: 52, borderRadius: 26, backgroundColor: '#2DAFE3',
     justifyContent: 'center', alignItems: 'center',
   },
   groupAvatarText: { fontSize: 22, fontWeight: '700', color: '#FFF' },
@@ -657,8 +657,8 @@ const styles = StyleSheet.create({
   groupPreview: { fontSize: 14, color: '#888', marginTop: 2 },
   groupMeta: { alignItems: 'flex-end' },
   groupTime: { fontSize: 12, color: '#AAA', marginBottom: 4 },
-  groupBadge: { backgroundColor: '#EBF0F7', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
-  groupBadgeText: { fontSize: 11, fontWeight: '700', color: '#1A365D' },
+  groupBadge: { backgroundColor: '#E0F7FA', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
+  groupBadgeText: { fontSize: 11, fontWeight: '700', color: '#2DAFE3' },
 
   /* ── Empty State ── */
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 48 },
@@ -668,7 +668,7 @@ const styles = StyleSheet.create({
   /* ── Detail Header ── */
   detailHeader: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#1A365D', paddingTop: 48, paddingBottom: 16, paddingHorizontal: 16,
+    backgroundColor: '#2DAFE3', paddingTop: 48, paddingBottom: 16, paddingHorizontal: 16,
   },
   backBtn: { padding: 8, marginRight: 4 },
   detailHeaderCenter: { flex: 1, flexDirection: 'row', alignItems: 'center' },
@@ -678,7 +678,7 @@ const styles = StyleSheet.create({
   },
   detailAvatarText: { fontSize: 18, fontWeight: '700', color: '#FFF' },
   detailTitle: { fontSize: 18, fontWeight: '700', color: '#FFF' },
-  detailSub: { fontSize: 13, color: '#EBF0F7' },
+  detailSub: { fontSize: 13, color: '#E0F7FA' },
   detailAction: { padding: 8 },
 
   /* ── Compat Card ── */
@@ -687,11 +687,11 @@ const styles = StyleSheet.create({
     elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4,
   },
   scoreCircle: {
-    width: 72, height: 72, borderRadius: 36, backgroundColor: '#EBF0F7',
-    justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: '#1A365D',
+    width: 72, height: 72, borderRadius: 36, backgroundColor: '#E0F7FA',
+    justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: '#2DAFE3',
   },
-  scoreNum: { fontSize: 24, fontWeight: '700', color: '#1A365D' },
-  scorePct: { fontSize: 12, color: '#1A365D' },
+  scoreNum: { fontSize: 24, fontWeight: '700', color: '#2DAFE3' },
+  scorePct: { fontSize: 12, color: '#2DAFE3' },
   compatInfo: { flex: 1, marginLeft: 16, justifyContent: 'center' },
   compatTitle: { fontSize: 17, fontWeight: '700', color: '#333', marginBottom: 4 },
   compatDesc: { fontSize: 13, color: '#888', lineHeight: 18 },
@@ -707,7 +707,7 @@ const styles = StyleSheet.create({
     elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 2,
   },
   memberAvatar: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: '#1A365D',
+    width: 44, height: 44, borderRadius: 22, backgroundColor: '#2DAFE3',
     justifyContent: 'center', alignItems: 'center', marginRight: 12,
   },
   memberInit: { fontSize: 18, fontWeight: '700', color: '#FFF' },
@@ -715,8 +715,8 @@ const styles = StyleSheet.create({
   memberNameRow: { flexDirection: 'row', alignItems: 'center' },
   verifiedBadge: { marginLeft: 6 },
   memberSub: { fontSize: 13, color: '#888', marginTop: 1 },
-  youTag: { backgroundColor: '#EBF0F7', paddingVertical: 3, paddingHorizontal: 10, borderRadius: 10 },
-  youTagText: { fontSize: 12, fontWeight: '600', color: '#1A365D' },
+  youTag: { backgroundColor: '#E0F7FA', paddingVertical: 3, paddingHorizontal: 10, borderRadius: 10 },
+  youTagText: { fontSize: 12, fontWeight: '600', color: '#2DAFE3' },
 
   /* ── Detail Card ── */
   detailCard: {
@@ -734,7 +734,7 @@ const styles = StyleSheet.create({
   /* ── Health ── */
   healthCard: { backgroundColor: '#FFF', padding: 18, borderRadius: 12 },
   healthBar: { height: 8, backgroundColor: '#E0E0E0', borderRadius: 4, overflow: 'hidden', marginBottom: 10 },
-  healthFill: { height: '100%', backgroundColor: '#1A365D' },
+  healthFill: { height: '100%', backgroundColor: '#2DAFE3' },
   healthText: { fontSize: 16, fontWeight: '700', color: '#333' },
 
   /* ── Leave ── */
@@ -753,9 +753,9 @@ const styles = StyleSheet.create({
   modalLabel: { fontSize: 14, fontWeight: '600', color: '#555', marginBottom: 6, marginTop: 14 },
   modalInput: { backgroundColor: '#F8F9FA', borderRadius: 12, borderWidth: 1, borderColor: '#E8E8E8', padding: 14, fontSize: 15, color: '#333' },
   inviteRow: { flexDirection: 'row', alignItems: 'center' },
-  addInviteBtn: { width: 48, height: 48, borderRadius: 12, backgroundColor: '#1A365D', justifyContent: 'center', alignItems: 'center' },
+  addInviteBtn: { width: 48, height: 48, borderRadius: 12, backgroundColor: '#2DAFE3', justifyContent: 'center', alignItems: 'center' },
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
-  chip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EBF0F7', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 20 },
+  chip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E0F7FA', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 20 },
   chipText: { fontSize: 13, color: '#00838F', marginRight: 6 },
   streakRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', borderRadius: 14, padding: 14, marginTop: 18, borderWidth: 1, borderColor: '#E8E8E8' },
   streakIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#E0E0E0', justifyContent: 'center', alignItems: 'center' },
@@ -763,9 +763,9 @@ const styles = StyleSheet.create({
   streakTitle: { fontSize: 15, fontWeight: '600', color: '#333' },
   streakDesc: { fontSize: 12, color: '#888', marginTop: 2 },
   toggle: { width: 48, height: 28, borderRadius: 14, backgroundColor: '#DDD', padding: 2, justifyContent: 'center' },
-  toggleActive: { backgroundColor: '#1A365D' },
+  toggleActive: { backgroundColor: '#2DAFE3' },
   toggleThumb: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#FFF' },
   toggleThumbActive: { alignSelf: 'flex-end' },
-  createGroupBtn: { backgroundColor: '#1A365D', paddingVertical: 15, borderRadius: 14, alignItems: 'center', marginTop: 24, minHeight: 52, justifyContent: 'center' },
+  createGroupBtn: { backgroundColor: '#2DAFE3', paddingVertical: 15, borderRadius: 14, alignItems: 'center', marginTop: 24, minHeight: 52, justifyContent: 'center' },
   createGroupBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });

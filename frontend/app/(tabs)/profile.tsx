@@ -211,7 +211,7 @@ export default function ProfileScreen() {
         <TouchableOpacity onPress={showPhotoOptions} style={styles.avatarContainer}>
           {uploading ? (
             <View style={styles.avatarPlaceholder}>
-              <ActivityIndicator size="large" color="#1A365D" />
+              <ActivityIndicator size="large" color="#2DAFE3" />
             </View>
           ) : profilePhoto ? (
             <Image source={{ uri: profilePhoto }} style={styles.avatar} />
@@ -266,7 +266,7 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Academic Information</Text>
           <View style={styles.card}>
             <View style={styles.infoRow}>
-              <Ionicons name="school" size={20} color="#1A365D" />
+              <Ionicons name="school" size={20} color="#2DAFE3" />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>University</Text>
                 <Text style={styles.infoValue}>{user.university}</Text>
@@ -274,7 +274,7 @@ export default function ProfileScreen() {
             </View>
             {user.course && (
               <View style={styles.infoRow}>
-                <Ionicons name="book" size={20} color="#1A365D" />
+                <Ionicons name="book" size={20} color="#2DAFE3" />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Course</Text>
                   <Text style={styles.infoValue}>{user.course}</Text>
@@ -290,7 +290,7 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Study Preferences</Text>
           <View style={styles.card}>
             <View style={styles.infoRow}>
-              <Ionicons name="bulb" size={20} color="#1A365D" />
+              <Ionicons name="bulb" size={20} color="#2DAFE3" />
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Study Style</Text>
                 <Text style={styles.infoValue}>{user.study_style}</Text>
@@ -298,7 +298,7 @@ export default function ProfileScreen() {
             </View>
             {user.grade_goal && (
               <View style={styles.infoRow}>
-                <Ionicons name="trophy" size={20} color="#1A365D" />
+                <Ionicons name="trophy" size={20} color="#2DAFE3" />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Grade Goal</Text>
                   <Text style={styles.infoValue}>{user.grade_goal}</Text>
@@ -307,7 +307,7 @@ export default function ProfileScreen() {
             )}
             {user.location_preference && (
               <View style={styles.infoRow}>
-                <Ionicons name="location" size={20} color="#1A365D" />
+                <Ionicons name="location" size={20} color="#2DAFE3" />
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Preferred Location</Text>
                   <Text style={styles.infoValue}>{user.location_preference}</Text>
@@ -322,31 +322,31 @@ export default function ProfileScreen() {
         <Text style={styles.sectionTitle}>{t('profile.settings.title')}</Text>
         <View style={styles.card}>
           <TouchableOpacity style={styles.settingsItem} onPress={handleEditProfile}>
-            <Ionicons name="create-outline" size={24} color="#1A365D" />
+            <Ionicons name="create-outline" size={24} color="#2DAFE3" />
             <Text style={styles.settingsText}>{t('profile.settings.editProfile')}</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.settingsItem} onPress={showPhotoOptions}>
-            <Ionicons name="camera-outline" size={24} color="#1A365D" />
+            <Ionicons name="camera-outline" size={24} color="#2DAFE3" />
             <Text style={styles.settingsText}>Change Profile Photo</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.settingsItem} onPress={() => router.push('/privacy')}>
-            <Ionicons name="shield-checkmark-outline" size={24} color="#1A365D" />
+            <Ionicons name="shield-checkmark-outline" size={24} color="#2DAFE3" />
             <Text style={styles.settingsText}>Privacy Policy</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.settingsItem} onPress={() => router.push('/terms')}>
-            <Ionicons name="document-text-outline" size={24} color="#1A365D" />
+            <Ionicons name="document-text-outline" size={24} color="#2DAFE3" />
             <Text style={styles.settingsText}>Terms of Service</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingsItem}>
-            <Ionicons name="information-circle-outline" size={24} color="#1A365D" />
+            <Ionicons name="information-circle-outline" size={24} color="#2DAFE3" />
             <Text style={styles.settingsText}>{t('profile.settings.about')}</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
   header: {
-    backgroundColor: '#1A365D',
+    backgroundColor: '#2DAFE3',
     padding: 24,
     paddingTop: 48,
     alignItems: 'center',
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 40,
     fontWeight: 'bold',
-    color: '#1A365D',
+    color: '#2DAFE3',
   },
   cameraOverlay: {
     position: 'absolute',
@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   changePhotoText: {
-    color: '#EBF0F7',
+    color: '#E0F7FA',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
   },
   email: {
     fontSize: 14,
-    color: '#EBF0F7',
+    color: '#E0F7FA',
   },
   section: {
     padding: 16,
@@ -614,7 +614,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   subBadgeFree: { backgroundColor: '#B0BEC5' },
-  subBadgeBasic: { backgroundColor: '#1A365D' },
+  subBadgeBasic: { backgroundColor: '#2DAFE3' },
   subBadgePro: { backgroundColor: '#FF9800' },
   subBadgeText: {
     fontSize: 12,
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
   upgradeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1A365D',
+    backgroundColor: '#2DAFE3',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 10,

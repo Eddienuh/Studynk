@@ -299,7 +299,7 @@ export default function StudySpotsScreen() {
           {/* Hero */}
           <View style={styles.detailHero}>
             <View style={styles.detailIconBig}>
-              <Ionicons name={getTypeIcon(selectedPlace.type) as any} size={48} color="#1A365D" />
+              <Ionicons name={getTypeIcon(selectedPlace.type) as any} size={48} color="#2DAFE3" />
             </View>
             <Text style={styles.detailName}>{selectedPlace.name}</Text>
             <Text style={styles.detailAddress}>{selectedPlace.address}</Text>
@@ -341,13 +341,13 @@ export default function StudySpotsScreen() {
               <Text style={styles.detailSectionTitle}>Contact</Text>
               {selectedPlace.phone && (
                 <View style={styles.contactRow}>
-                  <Ionicons name="call-outline" size={18} color="#1A365D" />
+                  <Ionicons name="call-outline" size={18} color="#2DAFE3" />
                   <Text style={styles.contactText}>{selectedPlace.phone}</Text>
                 </View>
               )}
               {selectedPlace.website && (
                 <View style={styles.contactRow}>
-                  <Ionicons name="globe-outline" size={18} color="#1A365D" />
+                  <Ionicons name="globe-outline" size={18} color="#2DAFE3" />
                   <Text style={styles.contactText} numberOfLines={1}>{selectedPlace.website}</Text>
                 </View>
               )}
@@ -405,7 +405,7 @@ export default function StudySpotsScreen() {
         <ScrollView contentContainerStyle={styles.detailContent}>
           <View style={styles.detailHero}>
             <View style={styles.detailIconBig}>
-              <Ionicons name={getTypeIcon(selectedSeeded.type) as any} size={48} color="#1A365D" />
+              <Ionicons name={getTypeIcon(selectedSeeded.type) as any} size={48} color="#2DAFE3" />
             </View>
             <Text style={styles.detailName}>{selectedSeeded.name}</Text>
             <Text style={styles.detailAddress}>{selectedSeeded.address}</Text>
@@ -434,7 +434,7 @@ export default function StudySpotsScreen() {
             <View style={styles.amenitiesGrid}>
               {selectedSeeded.amenities.map((a, i) => (
                 <View key={i} style={styles.amenityChip}>
-                  <Ionicons name="checkmark-circle" size={14} color="#1A365D" />
+                  <Ionicons name="checkmark-circle" size={14} color="#2DAFE3" />
                   <Text style={styles.amenityChipText}>{a}</Text>
                 </View>
               ))}
@@ -498,7 +498,7 @@ export default function StudySpotsScreen() {
           onChangeText={(text) => { setSearchQuery(text); if (text.length < 2) setShowPredictions(false); }}
           autoCorrect={false}
         />
-        {searchLoading && <ActivityIndicator size="small" color="#1A365D" style={{ marginRight: 8 }} />}
+        {searchLoading && <ActivityIndicator size="small" color="#2DAFE3" style={{ marginRight: 8 }} />}
         {searchQuery.length > 0 && !searchLoading && (
           <TouchableOpacity onPress={() => { setSearchQuery(''); setPredictions([]); setShowPredictions(false); }}>
             <Ionicons name="close-circle" size={20} color="#999" />
@@ -519,7 +519,7 @@ export default function StudySpotsScreen() {
               style={styles.predictionItem}
               onPress={() => selectPrediction(p)}
             >
-              <Ionicons name="location-outline" size={20} color="#1A365D" />
+              <Ionicons name="location-outline" size={20} color="#2DAFE3" />
               <View style={styles.predictionText}>
                 <Text style={styles.predictionName} numberOfLines={1}>{p.name}</Text>
                 <Text style={styles.predictionDesc} numberOfLines={1}>{p.description}</Text>
@@ -532,7 +532,7 @@ export default function StudySpotsScreen() {
 
       {detailLoading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#1A365D" />
+          <ActivityIndicator size="large" color="#2DAFE3" />
           <Text style={styles.loadingText}>Loading place details...</Text>
         </View>
       )}
@@ -548,7 +548,7 @@ export default function StudySpotsScreen() {
                 style={[styles.filterChip, activeFilter === f.key && styles.filterChipActive]}
                 onPress={() => setActiveFilter(f.key)}
               >
-                <Ionicons name={f.icon as any} size={16} color={activeFilter === f.key ? '#FFF' : '#1A365D'} />
+                <Ionicons name={f.icon as any} size={16} color={activeFilter === f.key ? '#FFF' : '#2DAFE3'} />
                 <Text style={[styles.filterText, activeFilter === f.key && styles.filterTextActive]}>{f.label}</Text>
               </TouchableOpacity>
             ))}
@@ -562,7 +562,7 @@ export default function StudySpotsScreen() {
 
             {featuredLoading ? (
               <View style={styles.loadingCenter}>
-                <ActivityIndicator size="large" color="#1A365D" />
+                <ActivityIndicator size="large" color="#2DAFE3" />
               </View>
             ) : featured.length === 0 ? (
               <View style={styles.emptyContainer}>
@@ -579,7 +579,7 @@ export default function StudySpotsScreen() {
                 >
                   <View style={styles.cardTop}>
                     <View style={styles.cardIconContainer}>
-                      <Ionicons name={getTypeIcon(loc.type) as any} size={28} color="#1A365D" />
+                      <Ionicons name={getTypeIcon(loc.type) as any} size={28} color="#2DAFE3" />
                     </View>
                     <View style={styles.cardInfo}>
                       <Text style={styles.cardName}>{loc.name}</Text>
@@ -632,7 +632,7 @@ export default function StudySpotsScreen() {
             </View>
             <Text style={gpStyles.subtitle}>Choose which group to share this location with</Text>
             {loadingGroups ? (
-              <ActivityIndicator size="large" color="#1A365D" style={{ padding: 32 }} />
+              <ActivityIndicator size="large" color="#2DAFE3" style={{ padding: 32 }} />
             ) : userGroups.length === 0 ? (
               <View style={gpStyles.emptyRow}>
                 <Ionicons name="people-outline" size={32} color="#CCC" />
@@ -655,7 +655,7 @@ export default function StudySpotsScreen() {
                     <Text style={gpStyles.groupName}>{g.group_name || g.course}</Text>
                     <Text style={gpStyles.groupSub}>{g.members?.length || 0} members</Text>
                   </View>
-                  <Ionicons name="paper-plane" size={20} color="#1A365D" />
+                  <Ionicons name="paper-plane" size={20} color="#2DAFE3" />
                 </TouchableOpacity>
               ))
             )}
@@ -700,9 +700,9 @@ const styles = StyleSheet.create({
 
   filtersRow: { marginTop: 12, maxHeight: 48 },
   filtersContent: { paddingHorizontal: 16, gap: 8 },
-  filterChip: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, backgroundColor: '#EBF0F7', marginRight: 8 },
-  filterChipActive: { backgroundColor: '#1A365D' },
-  filterText: { fontSize: 13, fontWeight: '600', color: '#1A365D', marginLeft: 6 },
+  filterChip: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, backgroundColor: '#E0F7FA', marginRight: 8 },
+  filterChipActive: { backgroundColor: '#2DAFE3' },
+  filterText: { fontSize: 13, fontWeight: '600', color: '#2DAFE3', marginLeft: 6 },
   filterTextActive: { color: '#FFF' },
 
   resultsContainer: { flex: 1, marginTop: 8 },
@@ -713,11 +713,11 @@ const styles = StyleSheet.create({
 
   locationCard: { backgroundColor: '#FFF', marginHorizontal: 16, marginBottom: 12, borderRadius: 14, padding: 16, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 3 },
   cardTop: { flexDirection: 'row', alignItems: 'center' },
-  cardIconContainer: { width: 52, height: 52, borderRadius: 14, backgroundColor: '#EBF0F7', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  cardIconContainer: { width: 52, height: 52, borderRadius: 14, backgroundColor: '#E0F7FA', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   cardInfo: { flex: 1 },
   cardName: { fontSize: 17, fontWeight: '700', color: '#333' },
   cardAddress: { fontSize: 13, color: '#666', marginTop: 2 },
-  cardType: { fontSize: 11, fontWeight: '600', color: '#1A365D', marginTop: 3, letterSpacing: 0.5 },
+  cardType: { fontSize: 11, fontWeight: '600', color: '#2DAFE3', marginTop: 3, letterSpacing: 0.5 },
   cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#F0F0F0' },
   busynessRow: { flexDirection: 'row', alignItems: 'center' },
   busynessDot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
@@ -727,7 +727,7 @@ const styles = StyleSheet.create({
   amenitiesRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10, gap: 6 },
   amenityMini: { backgroundColor: '#F5F7FA', paddingVertical: 3, paddingHorizontal: 8, borderRadius: 6 },
   amenityMiniText: { fontSize: 11, color: '#666' },
-  moreAmenities: { fontSize: 11, color: '#1A365D', fontWeight: '600', alignSelf: 'center', marginLeft: 4 },
+  moreAmenities: { fontSize: 11, color: '#2DAFE3', fontWeight: '600', alignSelf: 'center', marginLeft: 4 },
 
   // Detail view styles
   detailHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
@@ -735,7 +735,7 @@ const styles = StyleSheet.create({
   detailContent: { padding: 16 },
   placePhoto: { width: '100%', height: 200, borderRadius: 14, marginBottom: 16 },
   detailHero: { alignItems: 'center', backgroundColor: '#FFF', borderRadius: 16, padding: 24, marginBottom: 16 },
-  detailIconBig: { width: 88, height: 88, borderRadius: 44, backgroundColor: '#EBF0F7', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  detailIconBig: { width: 88, height: 88, borderRadius: 44, backgroundColor: '#E0F7FA', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   detailName: { fontSize: 24, fontWeight: '700', color: '#333', textAlign: 'center' },
   detailAddress: { fontSize: 15, color: '#666', marginTop: 4, textAlign: 'center' },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 16 },
@@ -753,10 +753,10 @@ const styles = StyleSheet.create({
   contactRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   contactText: { fontSize: 14, color: '#333', marginLeft: 10, flex: 1 },
   amenitiesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  amenityChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EBF0F7', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8 },
+  amenityChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E0F7FA', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8 },
   amenityChipText: { fontSize: 13, color: '#333', marginLeft: 4 },
   shareFooter: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, paddingBottom: 32, backgroundColor: '#FFF', borderTopWidth: 1, borderTopColor: '#F0F0F0' },
-  shareButton: { flexDirection: 'row', backgroundColor: '#1A365D', paddingVertical: 16, borderRadius: 14, alignItems: 'center', justifyContent: 'center', minHeight: 54 },
+  shareButton: { flexDirection: 'row', backgroundColor: '#2DAFE3', paddingVertical: 16, borderRadius: 14, alignItems: 'center', justifyContent: 'center', minHeight: 54 },
   shareButtonText: { color: '#FFF', fontSize: 17, fontWeight: '700', marginLeft: 10 },
 
   meetingHint: { fontSize: 13, color: '#999', marginBottom: 8 },
@@ -776,7 +776,7 @@ const gpStyles = StyleSheet.create({
     backgroundColor: '#F8F9FA', marginBottom: 8, borderWidth: 1, borderColor: '#E8E8E8',
   },
   groupAvatar: {
-    width: 46, height: 46, borderRadius: 23, backgroundColor: '#1A365D',
+    width: 46, height: 46, borderRadius: 23, backgroundColor: '#2DAFE3',
     justifyContent: 'center', alignItems: 'center', marginRight: 12,
   },
   groupAvatarText: { fontSize: 18, fontWeight: '700', color: '#FFF' },

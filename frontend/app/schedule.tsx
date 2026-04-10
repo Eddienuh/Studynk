@@ -171,7 +171,7 @@ export default function ScheduleScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#1A365D" />
+        <ActivityIndicator size="large" color="#2DAFE3" />
       </View>
     );
   }
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   joinBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1A365D',
+    backgroundColor: '#2DAFE3',
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 8,
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     maxHeight: 200,
   },
   saveNotesBtn: {
-    backgroundColor: '#1A365D',
+    backgroundColor: '#2DAFE3',
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',

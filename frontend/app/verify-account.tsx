@@ -102,7 +102,7 @@ export default function VerifyAccountScreen() {
         <View style={styles.content}>
           <View style={styles.headerSection}>
             <View style={styles.iconContainer}>
-              <Ionicons name="shield-checkmark-outline" size={48} color="#1A365D" />
+              <Ionicons name="shield-checkmark-outline" size={48} color="#2DAFE3" />
             </View>
             <Text style={styles.title}>Verify Your Account</Text>
             <Text style={styles.subtitle}>
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   headerSection: { alignItems: 'center', marginBottom: 32 },
   iconContainer: {
     width: 96, height: 96, borderRadius: 48,
-    backgroundColor: '#EBF0F7', justifyContent: 'center', alignItems: 'center', marginBottom: 20,
+    backgroundColor: '#E0F7FA', justifyContent: 'center', alignItems: 'center', marginBottom: 20,
   },
   title: { fontSize: 26, fontWeight: '800', color: '#1A1A2E', marginBottom: 10 },
   subtitle: { fontSize: 15, color: '#888', textAlign: 'center', lineHeight: 22 },
@@ -185,10 +185,10 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0', backgroundColor: '#F8F9FA',
     fontSize: 28, fontWeight: '700', color: '#333',
   },
-  codeInputFilled: { borderColor: '#1A365D', backgroundColor: '#EBF0F7' },
+  codeInputFilled: { borderColor: '#2DAFE3', backgroundColor: '#E0F7FA' },
 
   verifyBtn: {
-    backgroundColor: '#1A365D', paddingVertical: 16, borderRadius: 14,
+    backgroundColor: '#2DAFE3', paddingVertical: 16, borderRadius: 14,
     alignItems: 'center', minHeight: 56, justifyContent: 'center',
   },
   verifyBtnDisabled: { opacity: 0.5 },
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
 
   resendRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 },
   resendText: { fontSize: 14, color: '#888' },
-  resendLink: { fontSize: 14, color: '#1A365D', fontWeight: '600' },
+  resendLink: { fontSize: 14, color: '#2DAFE3', fontWeight: '600' },
 
   skipRow: { alignItems: 'center', marginTop: 16 },
   skipText: { fontSize: 14, color: '#AAA' },

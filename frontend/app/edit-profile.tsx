@@ -71,7 +71,7 @@ export default function EditProfileScreen() {
           <Text style={styles.fieldLabel}>{label}</Text>
           {!isEditing && (
             <TouchableOpacity onPress={() => setEditingField(field)}>
-              <Ionicons name="create-outline" size={20} color="#1A365D" />
+              <Ionicons name="create-outline" size={20} color="#2DAFE3" />
             </TouchableOpacity>
           )}
         </View>
@@ -238,8 +238,8 @@ const styles = StyleSheet.create({
     borderColor: '#DDD',
   },
   optionButtonSelected: {
-    backgroundColor: '#1A365D',
-    borderColor: '#1A365D',
+    backgroundColor: '#2DAFE3',
+    borderColor: '#2DAFE3',
   },
   optionText: {
     fontSize: 14,
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
     borderRadius: 8,
-    backgroundColor: '#1A365D',
+    backgroundColor: '#2DAFE3',
     alignItems: 'center',
   },
   saveButtonText: {

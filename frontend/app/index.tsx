@@ -23,8 +23,11 @@ export default function IndexScreen() {
 
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color="#1A365D" />
-      <Text style={styles.text}>Loading...</Text>
+      <View style={styles.logoBox}>
+        <Text style={styles.logoIcon}>S</Text>
+      </View>
+      <Text style={styles.brand}>Studynk</Text>
+      <ActivityIndicator size="large" color="#2DAFE3" style={{ marginTop: 24 }} />
     </View>
   );
 }
@@ -36,9 +39,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFF',
   },
-  text: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666',
+  logoBox: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: '#1A365D',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  logoIcon: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#FFF',
+  },
+  brand: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#1A365D',
   },
 });
