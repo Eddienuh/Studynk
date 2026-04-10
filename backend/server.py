@@ -990,8 +990,11 @@ async def find_matches(request: Request):
                 "compatibility_score": score
             })
     
-    # Sort by score
-    scored_matches.sort(key=lambda x: x["compatibility_score"], reverse=True)
+    # Sort: Pro users first, then by compatibility score
+    for match in scored_matches:
+        match_user = match["user"]
+        match["is_pro"] = match_user.get("subscriptionStatus") == "pro"
+    scored_matches.sort(key=lambda x: (x.get("is_pro", False), x["compatibility_score"]), reverse=True)
     
     # Group formation: Try to create groups of 2-4 with high compatibility
     if len(scored_matches) >= 1:

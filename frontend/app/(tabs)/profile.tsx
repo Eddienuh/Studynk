@@ -366,6 +366,12 @@ export default function ProfileScreen() {
             <Ionicons name="time-outline" size={20} color="#888" />
             <Text style={styles.legalText}>Accounts inactive for 24 months will be deleted.</Text>
           </View>
+          <View style={styles.legalRow}>
+            <Ionicons name="card-outline" size={20} color="#888" />
+            <Text style={styles.legalText}>
+              As Studynk provides instant digital access to Priority Boosts, all sales are final. By upgrading, you waive your 14-day right to cancel. Contact studynk0@outlook.com for support.
+            </Text>
+          </View>
           <TouchableOpacity style={styles.deleteAccountBtn} onPress={handleDeleteAccount} disabled={deleting}>
             {deleting ? (
               <ActivityIndicator color="#FFF" size="small" />
@@ -380,7 +386,7 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>StudyMatch v1.0</Text>
+        <Text style={styles.footerText}>Studynk v1.0</Text>
       </View>
 
       <View style={{ height: 32 }} />

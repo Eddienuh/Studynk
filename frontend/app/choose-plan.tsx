@@ -102,12 +102,12 @@ export default function ChoosePlanScreen() {
             </View>
           </View>
           <View style={styles.planFeatures}>
-            <PlanFeature text="Smart study group matching" included />
-            <PlanFeature text="Group messaging" included />
-            <PlanFeature text="Study streak tracking" included />
+            <PlanFeature text="Unlimited Invites" included />
+            <PlanFeature text="Ad-Free Experience" included />
+            <PlanFeature text="Verified Student Badge" included />
             <PlanFeature text="1 active study group" included />
-            <PlanFeature text="Advanced matching filters" included={false} />
-            <PlanFeature text="Unlimited study groups" included={false} />
+            <PlanFeature text="Priority Discovery Boost" included={false} />
+            <PlanFeature text="Boosted Profile Status" included={false} />
           </View>
         </TouchableOpacity>
 
@@ -138,10 +138,10 @@ export default function ChoosePlanScreen() {
             </View>
           </View>
           <View style={styles.planFeatures}>
+            <PlanFeature text="Priority Discovery Boost" included />
             <PlanFeature text="Everything in Basic" included />
-            <PlanFeature text="Advanced matching filters" included />
+            <PlanFeature text={"\u26A1 Boosted Profile Status"} included />
             <PlanFeature text="Unlimited study groups" included />
-            <PlanFeature text="Priority re-matching" included />
             <PlanFeature text="Group analytics & insights" included />
             <PlanFeature text="Priority support" included />
           </View>
