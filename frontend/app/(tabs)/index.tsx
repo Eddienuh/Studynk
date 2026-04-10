@@ -215,7 +215,7 @@ export default function HomeScreen() {
             onChangeText={handleSearch}
             autoCapitalize="none"
           />
-          {searching && <ActivityIndicator size="small" color="#2DAFE3" />}
+          {searching && <ActivityIndicator size="small" color="#1A365D" />}
           {searchQuery.length > 0 && !searching && (
             <TouchableOpacity onPress={() => { setSearchQuery(''); setSearchResults([]); setShowSearchResults(false); }}>
               <Ionicons name="close-circle" size={18} color="#CCC" />
@@ -244,7 +244,7 @@ export default function HomeScreen() {
                   router.push('/(tabs)/groups');
                 }}
               >
-                <Ionicons name="person-outline" size={16} color="#2DAFE3" />
+                <Ionicons name="person-outline" size={16} color="#1A365D" />
               </TouchableOpacity>
             </View>
           )) : (
@@ -274,7 +274,7 @@ export default function HomeScreen() {
 
       {/* Find Matches */}
       <View style={styles.noGroupCard}>
-        <Ionicons name="search" size={48} color="#2DAFE3" />
+        <Ionicons name="search" size={48} color="#1A365D" />
         <Text style={styles.noGroupTitle}>Find Your Study Group</Text>
         <Text style={styles.noGroupText}>
           {group ? 'Search for more compatible students to grow your group' : 'Get matched with compatible students in your course'}
@@ -289,15 +289,15 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsGrid}>
           <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/schedule')} activeOpacity={0.7}>
-            <Ionicons name="calendar" size={32} color="#2DAFE3" />
+            <Ionicons name="calendar" size={32} color="#1A365D" />
             <Text style={styles.actionText}>Schedule</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/(tabs)/groups')} activeOpacity={0.7}>
-            <Ionicons name="people" size={32} color="#2DAFE3" />
+            <Ionicons name="people" size={32} color="#1A365D" />
             <Text style={styles.actionText}>My Group</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/(tabs)/messages')} activeOpacity={0.7}>
-            <Ionicons name="chatbubbles" size={32} color="#2DAFE3" />
+            <Ionicons name="chatbubbles" size={32} color="#1A365D" />
             <Text style={styles.actionText}>Messages</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/study-spots')} activeOpacity={0.7}>
@@ -305,7 +305,7 @@ export default function HomeScreen() {
             <Text style={styles.actionText}>Search &{'\n'}Share</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/(tabs)/profile')} activeOpacity={0.7}>
-            <Ionicons name="person" size={32} color="#2DAFE3" />
+            <Ionicons name="person" size={32} color="#1A365D" />
             <Text style={styles.actionText}>Profile</Text>
           </TouchableOpacity>
           {/* Invite Friends Card */}
@@ -331,7 +331,7 @@ export default function HomeScreen() {
               {/* Email Invite */}
               <Text style={styles.modalLabel}>Invite via Email</Text>
               <View style={styles.inviteRow}>
-                <Ionicons name="mail-outline" size={20} color="#2DAFE3" />
+                <Ionicons name="mail-outline" size={20} color="#1A365D" />
                 <TextInput
                   style={styles.inviteInput}
                   placeholder="friend@university.ac.uk"
@@ -349,7 +349,7 @@ export default function HomeScreen() {
               {/* Phone Invite */}
               <Text style={styles.modalLabel}>Invite via SMS</Text>
               <View style={styles.inviteRow}>
-                <Ionicons name="call-outline" size={20} color="#2DAFE3" />
+                <Ionicons name="call-outline" size={20} color="#1A365D" />
                 <TextInput
                   style={styles.inviteInput}
                   placeholder="+44 7XXX XXXXXX"
@@ -365,7 +365,7 @@ export default function HomeScreen() {
 
               {/* Contacts */}
               <TouchableOpacity style={styles.contactsBtn} onPress={loadContacts}>
-                <Ionicons name="people-outline" size={22} color="#2DAFE3" />
+                <Ionicons name="people-outline" size={22} color="#1A365D" />
                 <Text style={styles.contactsBtnText}>
                   {showContacts ? 'Refresh Contact List' : 'Choose from Contacts'}
                 </Text>
@@ -401,12 +401,12 @@ export default function HomeScreen() {
                         <View style={styles.contactActions}>
                           {phone && (
                             <TouchableOpacity style={styles.contactActionBtn} onPress={() => handleInviteViaSMS(phone)}>
-                              <Ionicons name="chatbubble-outline" size={16} color="#2DAFE3" />
+                              <Ionicons name="chatbubble-outline" size={16} color="#1A365D" />
                             </TouchableOpacity>
                           )}
                           {email && (
                             <TouchableOpacity style={styles.contactActionBtn} onPress={() => handleInviteViaEmail(email)}>
-                              <Ionicons name="mail-outline" size={16} color="#2DAFE3" />
+                              <Ionicons name="mail-outline" size={16} color="#1A365D" />
                             </TouchableOpacity>
                           )}
                         </View>
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
   greetingCol: {},
   greeting: { fontSize: 16, color: '#666' },
-  name: { fontSize: 28, fontWeight: 'bold', color: '#2DAFE3' },
+  name: { fontSize: 28, fontWeight: 'bold', color: '#1A365D' },
   searchBarRow: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F7FA',
     borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10,
@@ -460,14 +460,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5, borderBottomColor: '#F0F0F0',
   },
   searchAvatar: {
-    width: 38, height: 38, borderRadius: 19, backgroundColor: '#2DAFE3',
+    width: 38, height: 38, borderRadius: 19, backgroundColor: '#1A365D',
     justifyContent: 'center', alignItems: 'center', marginRight: 10,
   },
   searchAvatarText: { fontSize: 15, fontWeight: '700', color: '#FFF' },
   searchName: { fontSize: 15, fontWeight: '600', color: '#333' },
   searchSub: { fontSize: 12, color: '#888', marginTop: 1 },
   viewProfileBtn: {
-    width: 36, height: 36, borderRadius: 18, backgroundColor: '#E0F7FA',
+    width: 36, height: 36, borderRadius: 18, backgroundColor: '#EBF0F7',
     justifyContent: 'center', alignItems: 'center',
   },
   noResultsText: { textAlign: 'center', color: '#999', fontSize: 14, padding: 16 },
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
   streakNumber: { fontSize: 24, fontWeight: 'bold', color: '#333' },
   streakLabel: { fontSize: 14, color: '#666' },
   checkInButton: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#2DAFE3',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A365D',
     paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20,
   },
   checkInText: { color: '#FFF', fontSize: 14, fontWeight: '600', marginLeft: 4 },
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
   },
   noGroupTitle: { fontSize: 20, fontWeight: 'bold', color: '#333', marginTop: 16, marginBottom: 8 },
   noGroupText: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 24 },
-  findButton: { backgroundColor: '#2DAFE3', paddingVertical: 14, paddingHorizontal: 32, borderRadius: 24 },
+  findButton: { backgroundColor: '#1A365D', paddingVertical: 14, paddingHorizontal: 32, borderRadius: 24 },
   findButtonText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
 
   /* ── Quick Actions ── */
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
     elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2,
   },
   actionText: { fontSize: 14, color: '#333', marginTop: 8, fontWeight: '500', textAlign: 'center' },
-  inviteCard: { backgroundColor: '#2DAFE3' },
+  inviteCard: { backgroundColor: '#1A365D' },
 
   /* ── Invite Modal ── */
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
@@ -525,16 +525,16 @@ const styles = StyleSheet.create({
   },
   inviteInput: { flex: 1, paddingVertical: 13, paddingHorizontal: 8, fontSize: 15, color: '#333' },
   sendBtn: {
-    width: 44, height: 44, borderRadius: 10, backgroundColor: '#2DAFE3',
+    width: 44, height: 44, borderRadius: 10, backgroundColor: '#1A365D',
     justifyContent: 'center', alignItems: 'center', margin: 3,
   },
 
   /* ── Contacts ── */
   contactsBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#E0F7FA', borderRadius: 12, paddingVertical: 14, marginTop: 20,
+    backgroundColor: '#EBF0F7', borderRadius: 12, paddingVertical: 14, marginTop: 20,
   },
-  contactsBtnText: { fontSize: 15, fontWeight: '600', color: '#2DAFE3', marginLeft: 8, marginRight: 4 },
+  contactsBtnText: { fontSize: 15, fontWeight: '600', color: '#1A365D', marginLeft: 8, marginRight: 4 },
   contactsSection: { marginTop: 12 },
   contactSearchRow: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F7FA',
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
   contactDetail: { fontSize: 12, color: '#888', marginTop: 1 },
   contactActions: { flexDirection: 'row', gap: 6 },
   contactActionBtn: {
-    width: 34, height: 34, borderRadius: 17, backgroundColor: '#E0F7FA',
+    width: 34, height: 34, borderRadius: 17, backgroundColor: '#EBF0F7',
     justifyContent: 'center', alignItems: 'center',
   },
   noContactsText: { textAlign: 'center', color: '#999', fontSize: 14, padding: 16 },

@@ -296,7 +296,7 @@ export default function OnboardingScreen() {
               ))}
             </ScrollView>
             <TouchableOpacity style={styles.addButton} onPress={addTimeSlot}>
-              <Ionicons name="add-circle-outline" size={24} color="#2DAFE3" />
+              <Ionicons name="add-circle-outline" size={24} color="#1A365D" />
               <Text style={styles.addButtonText}>Add Time Slot</Text>
             </TouchableOpacity>
           </View>
@@ -310,7 +310,7 @@ export default function OnboardingScreen() {
             <View style={styles.photoSection}>
               <TouchableOpacity onPress={showPhotoOptions} style={styles.photoPickerBtn} activeOpacity={0.8}>
                 {uploadingPhoto ? (
-                  <ActivityIndicator size="large" color="#2DAFE3" />
+                  <ActivityIndicator size="large" color="#1A365D" />
                 ) : photoUri ? (
                   <Image source={{ uri: photoUri }} style={styles.photoPreview} />
                 ) : (
@@ -337,7 +337,7 @@ export default function OnboardingScreen() {
             <Text style={styles.stepTitle}>Phone Number</Text>
             <Text style={styles.subtitle}>Let study partners contact you easily</Text>
             <View style={styles.phoneSection}>
-              <Ionicons name="call-outline" size={24} color="#2DAFE3" style={{ marginRight: 12 }} />
+              <Ionicons name="call-outline" size={24} color="#1A365D" style={{ marginRight: 12 }} />
               <TextInput
                 style={[styles.input, { flex: 1 }]}
                 value={formData.phone_number}
@@ -412,10 +412,10 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   scrollContent: { padding: 24 },
   header: { marginBottom: 32 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#2DAFE3', marginBottom: 16 },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#1A365D', marginBottom: 16 },
   progressBar: { flexDirection: 'row', gap: 6 },
   progressDot: { flex: 1, height: 4, backgroundColor: '#DDD', borderRadius: 2 },
-  progressDotActive: { backgroundColor: '#2DAFE3' },
+  progressDotActive: { backgroundColor: '#1A365D' },
   stepIndicator: { fontSize: 13, color: '#888', marginTop: 8 },
   stepContent: { marginBottom: 24 },
   stepTitle: { fontSize: 24, fontWeight: '600', color: '#333', marginBottom: 8 },
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
   input: { backgroundColor: '#FFF', padding: 16, borderRadius: 12, fontSize: 16, color: '#333', borderWidth: 1, borderColor: '#DDD' },
   optionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   optionButton: { paddingVertical: 12, paddingHorizontal: 20, borderRadius: 24, backgroundColor: '#FFF', borderWidth: 2, borderColor: '#DDD' },
-  optionButtonSelected: { backgroundColor: '#2DAFE3', borderColor: '#2DAFE3' },
+  optionButtonSelected: { backgroundColor: '#1A365D', borderColor: '#1A365D' },
   optionText: { fontSize: 14, color: '#666', fontWeight: '500' },
   optionTextSelected: { color: '#FFF' },
   timeSlotsContainer: { maxHeight: 300 },
@@ -432,24 +432,24 @@ const styles = StyleSheet.create({
   timeSlotRow: { marginBottom: 12 },
   daySelector: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
   dayButton: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8, backgroundColor: '#F5F5F5', borderWidth: 1, borderColor: '#DDD' },
-  dayButtonSelected: { backgroundColor: '#2DAFE3', borderColor: '#2DAFE3' },
+  dayButtonSelected: { backgroundColor: '#1A365D', borderColor: '#1A365D' },
   dayButtonText: { fontSize: 12, color: '#666' },
   dayButtonTextSelected: { color: '#FFF' },
   timeRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
   timeInputContainer: { flex: 1 },
   timeInput: { backgroundColor: '#F5F5F5', padding: 12, borderRadius: 8, fontSize: 14, color: '#333', borderWidth: 1, borderColor: '#DDD' },
   removeButton: { padding: 12, justifyContent: 'center' },
-  addButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, backgroundColor: '#E0F7FA', borderRadius: 12, marginTop: 8 },
-  addButtonText: { fontSize: 16, color: '#2DAFE3', fontWeight: '600', marginLeft: 8 },
+  addButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, backgroundColor: '#EBF0F7', borderRadius: 12, marginTop: 8 },
+  addButtonText: { fontSize: 16, color: '#1A365D', fontWeight: '600', marginLeft: 8 },
   navigation: { flexDirection: 'row', gap: 12, marginTop: 24 },
-  navButton: { flex: 1, padding: 16, borderRadius: 12, alignItems: 'center', backgroundColor: '#FFF', borderWidth: 2, borderColor: '#2DAFE3' },
-  navButtonPrimary: { backgroundColor: '#2DAFE3' },
-  navButtonText: { fontSize: 16, fontWeight: '600', color: '#2DAFE3' },
+  navButton: { flex: 1, padding: 16, borderRadius: 12, alignItems: 'center', backgroundColor: '#FFF', borderWidth: 2, borderColor: '#1A365D' },
+  navButtonPrimary: { backgroundColor: '#1A365D' },
+  navButtonText: { fontSize: 16, fontWeight: '600', color: '#1A365D' },
   navButtonTextPrimary: { color: '#FFF', fontSize: 16, fontWeight: '600' },
 
   /* Photo Step */
   photoSection: { alignItems: 'center', paddingVertical: 16 },
-  photoPickerBtn: { width: 160, height: 160, borderRadius: 80, overflow: 'hidden', backgroundColor: '#F0F0F0', justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: '#2DAFE3', borderStyle: 'dashed' },
+  photoPickerBtn: { width: 160, height: 160, borderRadius: 80, overflow: 'hidden', backgroundColor: '#F0F0F0', justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: '#1A365D', borderStyle: 'dashed' },
   photoPreview: { width: 160, height: 160, borderRadius: 80 },
   photoPlaceholder: { justifyContent: 'center', alignItems: 'center' },
   photoPlaceholderText: { fontSize: 14, color: '#999', marginTop: 8 },

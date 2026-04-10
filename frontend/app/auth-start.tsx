@@ -61,7 +61,7 @@ export default function AuthStartScreen() {
     <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Ionicons name="school" size={64} color="#2DAFE3" />
+          <Ionicons name="school" size={64} color="#1A365D" />
         </View>
         
         <Text style={styles.title}>Sign in to continue</Text>
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#E0F7FA',
+    backgroundColor: '#EBF0F7',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   },
   googleButton: {
     flexDirection: 'row',
-    backgroundColor: '#2DAFE3',
+    backgroundColor: '#1A365D',
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,

@@ -75,7 +75,7 @@ export default function ChoosePlanScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Ionicons name="diamond" size={48} color="#2DAFE3" />
+          <Ionicons name="diamond" size={48} color="#1A365D" />
           <Text style={styles.title}>Choose Your Plan</Text>
           <Text style={styles.subtitle}>Start free or unlock everything with Pro</Text>
         </View>
@@ -88,7 +88,7 @@ export default function ChoosePlanScreen() {
         >
           <View style={styles.planHeader}>
             <View style={styles.planIconWrap}>
-              <Ionicons name="book-outline" size={28} color="#2DAFE3" />
+              <Ionicons name="book-outline" size={28} color="#1A365D" />
             </View>
             <View style={styles.planTitleWrap}>
               <Text style={styles.planName}>Basic</Text>
@@ -196,25 +196,25 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 15, color: '#666', marginTop: 6 },
 
   planCard: { backgroundColor: '#FFF', borderRadius: 16, padding: 20, marginBottom: 16, borderWidth: 2, borderColor: 'transparent' },
-  planCardSelected: { borderColor: '#2DAFE3' },
+  planCardSelected: { borderColor: '#1A365D' },
   proCard: { position: 'relative', overflow: 'visible' },
 
   trialBadge: { position: 'absolute', top: -12, right: 16, backgroundColor: '#FF9800', flexDirection: 'row', alignItems: 'center', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 12, zIndex: 1, elevation: 2, shadowColor: '#FF9800', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4 },
   trialBadgeText: { color: '#FFF', fontSize: 12, fontWeight: '700', marginLeft: 4 },
 
   planHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  planIconWrap: { width: 52, height: 52, borderRadius: 14, backgroundColor: '#E0F7FA', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  planIconWrap: { width: 52, height: 52, borderRadius: 14, backgroundColor: '#EBF0F7', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   planTitleWrap: { flex: 1 },
   planName: { fontSize: 20, fontWeight: '700', color: '#333' },
-  planPrice: { fontSize: 24, fontWeight: '800', color: '#2DAFE3' },
+  planPrice: { fontSize: 24, fontWeight: '800', color: '#1A365D' },
   priceRow: { flexDirection: 'row', alignItems: 'baseline' },
   planPricePro: { fontSize: 24, fontWeight: '800', color: '#FF9800' },
   planPricePeriod: { fontSize: 14, color: '#999', marginLeft: 2 },
   trialNote: { fontSize: 12, color: '#999', marginTop: 2 },
 
   radioOuter: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#CCC', justifyContent: 'center', alignItems: 'center' },
-  radioOuterActive: { borderColor: '#2DAFE3' },
-  radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#2DAFE3' },
+  radioOuterActive: { borderColor: '#1A365D' },
+  radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#1A365D' },
 
   planFeatures: { borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 12 },
   featureRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
@@ -222,10 +222,10 @@ const styles = StyleSheet.create({
   featureTextDisabled: { color: '#CCC' },
 
   legalText: { fontSize: 12, color: '#999', textAlign: 'center', marginTop: 8, lineHeight: 18, paddingHorizontal: 8 },
-  legalLink: { color: '#2DAFE3', fontWeight: '600' },
+  legalLink: { color: '#1A365D', fontWeight: '600' },
 
   footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, paddingBottom: 32, backgroundColor: '#FFF', borderTopWidth: 1, borderTopColor: '#F0F0F0' },
-  continueBtn: { backgroundColor: '#2DAFE3', paddingVertical: 16, borderRadius: 14, alignItems: 'center', justifyContent: 'center', minHeight: 54 },
+  continueBtn: { backgroundColor: '#1A365D', paddingVertical: 16, borderRadius: 14, alignItems: 'center', justifyContent: 'center', minHeight: 54 },
   continueBtnDisabled: { opacity: 0.6 },
   continueBtnText: { color: '#FFF', fontSize: 17, fontWeight: '700' },
   skipBtn: { alignItems: 'center', paddingVertical: 12 },

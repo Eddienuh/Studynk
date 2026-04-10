@@ -40,7 +40,7 @@ export default function WelcomeScreen() {
         <View style={styles.pricingSection}>
           <View style={styles.pricingCard}>
             <View style={styles.pricingHeader}>
-              <Ionicons name="star" size={20} color="#2DAFE3" />
+              <Ionicons name="star" size={20} color="#1A365D" />
               <Text style={styles.pricingName}>Basic</Text>
             </View>
             <Text style={styles.pricingPrice}>{"\u00A3"}2.99<Text style={styles.pricingPeriod}>/mo</Text></Text>
@@ -90,6 +90,7 @@ export default function WelcomeScreen() {
         </TouchableOpacity>
 
         <Text style={styles.footer}>Join 1000+ students finding better study groups</Text>
+        <Text style={styles.supportEmail}>Support: studynk0@outlook.com</Text>
         <View style={{ height: 24 }} />
       </ScrollView>
     </SafeAreaView>
@@ -100,7 +101,7 @@ function Feature({ icon, text }: { icon: any; text: string }) {
   return (
     <View style={styles.feature}>
       <View style={styles.featureIcon}>
-        <Ionicons name={icon} size={20} color="#2DAFE3" />
+        <Ionicons name={icon} size={20} color="#1A365D" />
       </View>
       <Text style={styles.featureText}>{text}</Text>
     </View>
@@ -123,16 +124,16 @@ const styles = StyleSheet.create({
   /* Launch Banner */
   launchBanner: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#2DAFE3', paddingVertical: 10, paddingHorizontal: 20,
+    backgroundColor: '#1A365D', paddingVertical: 10, paddingHorizontal: 20,
     borderRadius: 24, marginTop: 12, marginBottom: 20,
   },
   launchBannerText: { color: '#FFF', fontSize: 14, fontWeight: '700', marginLeft: 8 },
 
   logoBox: {
-    width: 88, height: 88, borderRadius: 22, backgroundColor: '#2DAFE3',
+    width: 88, height: 88, borderRadius: 22, backgroundColor: '#1A365D',
     justifyContent: 'center', alignItems: 'center', marginBottom: 12,
   },
-  title: { fontSize: 32, fontWeight: 'bold', color: '#2DAFE3', marginBottom: 6 },
+  title: { fontSize: 32, fontWeight: 'bold', color: '#1A365D', marginBottom: 6 },
   tagline: { fontSize: 18, color: '#666', textAlign: 'center', marginBottom: 16, lineHeight: 26 },
 
   /* Pro Hook */
@@ -156,8 +157,8 @@ const styles = StyleSheet.create({
   },
   proBadgeText: { color: '#FFF', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
   pricingHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-  pricingName: { fontSize: 18, fontWeight: '700', color: '#2DAFE3', marginLeft: 6 },
-  pricingPrice: { fontSize: 26, fontWeight: '800', color: '#2DAFE3', marginBottom: 10 },
+  pricingName: { fontSize: 18, fontWeight: '700', color: '#1A365D', marginLeft: 6 },
+  pricingPrice: { fontSize: 26, fontWeight: '800', color: '#1A365D', marginBottom: 10 },
   pricingPeriod: { fontSize: 14, fontWeight: '400', color: '#999' },
   pricingFeatures: {},
   pricingFeatureRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
@@ -167,14 +168,14 @@ const styles = StyleSheet.create({
   features: { width: '100%', marginBottom: 24 },
   feature: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   featureIcon: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: '#E0F7FA',
+    width: 40, height: 40, borderRadius: 20, backgroundColor: '#EBF0F7',
     justifyContent: 'center', alignItems: 'center', marginRight: 12,
   },
   featureText: { fontSize: 16, color: '#333', flex: 1 },
 
   /* Buttons */
   primaryButton: {
-    flexDirection: 'row', backgroundColor: '#2DAFE3', paddingVertical: 16,
+    flexDirection: 'row', backgroundColor: '#1A365D', paddingVertical: 16,
     paddingHorizontal: 32, borderRadius: 12, alignItems: 'center',
     justifyContent: 'center', width: '100%', maxWidth: 400, marginBottom: 12,
   },
@@ -182,8 +183,9 @@ const styles = StyleSheet.create({
   secondaryButton: {
     paddingVertical: 16, paddingHorizontal: 32, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center', width: '100%', maxWidth: 400,
-    borderWidth: 2, borderColor: '#2DAFE3',
+    borderWidth: 2, borderColor: '#1A365D',
   },
-  secondaryButtonText: { color: '#2DAFE3', fontSize: 16, fontWeight: '600' },
+  secondaryButtonText: { color: '#1A365D', fontSize: 16, fontWeight: '600' },
   footer: { marginTop: 20, fontSize: 14, color: '#999', textAlign: 'center' },
+  supportEmail: { marginTop: 6, fontSize: 12, color: '#AAA', textAlign: 'center' },
 });

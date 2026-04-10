@@ -23,7 +23,7 @@ export default function IndexScreen() {
 
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color="#2DAFE3" />
+      <ActivityIndicator size="large" color="#1A365D" />
       <Text style={styles.text}>Loading...</Text>
     </View>
   );

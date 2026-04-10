@@ -28,7 +28,10 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/logo.png"
+      "favicon": "./assets/logo.png",
+      "name": "Studynk",
+      "shortName": "Studynk",
+      "description": "The Verified Way to Find Your Study Squad"
     },
     "plugins": [
       "expo-router",

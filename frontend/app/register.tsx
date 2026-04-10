@@ -106,7 +106,7 @@ export default function RegisterScreen() {
 
           <View style={styles.headerSection}>
             <View style={styles.iconContainer}>
-              <Ionicons name="person-add" size={40} color="#2DAFE3" />
+              <Ionicons name="person-add" size={40} color="#1A365D" />
             </View>
             <Text style={styles.title}>Create Account</Text>
             <Text style={styles.subtitle}>Join Studynk and find your perfect study group</Text>
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#E0F7FA',
+    backgroundColor: '#EBF0F7',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -331,8 +331,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#2DAFE3',
-    borderColor: '#2DAFE3',
+    backgroundColor: '#1A365D',
+    borderColor: '#1A365D',
   },
   consentText: {
     flex: 1,
@@ -341,11 +341,11 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   linkText: {
-    color: '#2DAFE3',
+    color: '#1A365D',
     fontWeight: '600',
   },
   registerButton: {
-    backgroundColor: '#2DAFE3',
+    backgroundColor: '#1A365D',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   },
   footerLink: {
     fontSize: 15,
-    color: '#2DAFE3',
+    color: '#1A365D',
     fontWeight: '600',
   },
 });

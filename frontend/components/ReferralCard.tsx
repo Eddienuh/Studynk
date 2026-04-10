@@ -91,7 +91,7 @@ export default function ReferralCard({ userId, token }: ReferralCardProps) {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.iconContainer}>
-          <Ionicons name="gift" size={24} color="#2DAFE3" />
+          <Ionicons name="gift" size={24} color="#1A365D" />
         </View>
         <View style={styles.headerText}>
           <Text style={styles.title}>Invite Friends</Text>
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#E0F7FA',
+    backgroundColor: '#EBF0F7',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: '#2DAFE3',
+    color: '#1A365D',
     marginTop: 2,
   },
   progressContainer: {
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#2DAFE3',
+    backgroundColor: '#1A365D',
   },
   progressText: {
     fontSize: 12,
@@ -219,19 +219,19 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#2DAFE3',
+    borderColor: '#1A365D',
     borderStyle: 'dashed',
   },
   code: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#2DAFE3',
+    color: '#1A365D',
     textAlign: 'center',
     letterSpacing: 2,
   },
   shareButton: {
     flexDirection: 'row',
-    backgroundColor: '#2DAFE3',
+    backgroundColor: '#1A365D',
     padding: 14,
     borderRadius: 12,
     alignItems: 'center',

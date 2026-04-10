@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     paddingTop: 48, paddingBottom: 16, paddingHorizontal: 20,
     backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F0F0F0',
   },
-  listTitle: { fontSize: 28, fontWeight: '700', color: '#2DAFE3' },
+  listTitle: { fontSize: 28, fontWeight: '700', color: '#1A365D' },
 
   /* ── Conversation Row (WhatsApp style) ── */
   convoRow: {
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5, borderBottomColor: '#F0F0F0',
   },
   convoAvatar: {
-    width: 52, height: 52, borderRadius: 26, backgroundColor: '#2DAFE3',
+    width: 52, height: 52, borderRadius: 26, backgroundColor: '#1A365D',
     justifyContent: 'center', alignItems: 'center',
   },
   convoAvatarText: { fontSize: 22, fontWeight: '700', color: '#FFF' },
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
   convoMeta: { alignItems: 'flex-end' },
   convoTime: { fontSize: 12, color: '#AAA', marginBottom: 4 },
   unreadBadge: {
-    backgroundColor: '#2DAFE3', minWidth: 22, height: 22, borderRadius: 11,
+    backgroundColor: '#1A365D', minWidth: 22, height: 22, borderRadius: 11,
     justifyContent: 'center', alignItems: 'center', paddingHorizontal: 6,
   },
   unreadText: { fontSize: 12, fontWeight: '700', color: '#FFF' },
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: 8 },
   chatHeaderAvatar: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: '#2DAFE3',
+    width: 40, height: 40, borderRadius: 20, backgroundColor: '#1A365D',
     justifyContent: 'center', alignItems: 'center', marginLeft: 4,
   },
   chatHeaderAvatarText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
   msgWrapOwn: { alignSelf: 'flex-end' },
   senderName: { fontSize: 12, color: '#666', marginBottom: 4, marginLeft: 12 },
   bubble: { padding: 12, borderRadius: 16 },
-  bubbleOwn: { backgroundColor: '#2DAFE3', borderBottomRightRadius: 4 },
+  bubbleOwn: { backgroundColor: '#1A365D', borderBottomRightRadius: 4 },
   bubbleOther: { backgroundColor: '#FFF', borderBottomLeftRadius: 4, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2 },
   bubblePoll: { backgroundColor: '#F3E5F5', borderLeftWidth: 3, borderLeftColor: '#9C27B0' },
   pollHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   msgTextOwn: { color: '#FFF' },
   msgTextPoll: { color: '#4A148C' },
   msgTime: { fontSize: 11, color: '#999', marginTop: 4 },
-  msgTimeOwn: { color: '#E0F7FA' },
+  msgTimeOwn: { color: '#EBF0F7' },
 
   /* ── Input ── */
   inputContainer: {
@@ -342,6 +342,6 @@ const styles = StyleSheet.create({
     flex: 1, backgroundColor: '#F5F5F5', borderRadius: 20,
     paddingHorizontal: 16, paddingVertical: 10, fontSize: 16, color: '#333', maxHeight: 100, marginRight: 8,
   },
-  sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#2DAFE3', justifyContent: 'center', alignItems: 'center' },
+  sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1A365D', justifyContent: 'center', alignItems: 'center' },
   sendBtnDisabled: { backgroundColor: '#CCC' },
 });

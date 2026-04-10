@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 function MaintenanceScreen() {
   return (
     <View style={mStyles.container}>
-      <Ionicons name="construct" size={64} color="#2DAFE3" />
+      <Ionicons name="construct" size={64} color="#1A365D" />
       <Text style={mStyles.title}>Studynk is updating.</Text>
       <Text style={mStyles.sub}>Be back soon!</Text>
     </View>
@@ -45,6 +45,7 @@ export default function RootLayout() {
             <Stack.Screen name="edit-profile" />
             <Stack.Screen name="study-spots" />
             <Stack.Screen name="schedule" />
+            <Stack.Screen name="pricing" />
             <Stack.Screen name="(tabs)" />
           </Stack>
         </AuthProvider>
