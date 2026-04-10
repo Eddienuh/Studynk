@@ -10,6 +10,7 @@ import {
   Alert,
   RefreshControl,
   Image,
+  Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
@@ -117,6 +118,12 @@ export default function StudySpotsScreen() {
   const [sharing, setSharing] = useState(false);
   const [meetingNote, setMeetingNote] = useState('');
 
+  // Group picker state
+  const [showGroupPicker, setShowGroupPicker] = useState(false);
+  const [userGroups, setUserGroups] = useState<any[]>([]);
+  const [pendingShareData, setPendingShareData] = useState<any>(null);
+  const [loadingGroups, setLoadingGroups] = useState(false);
+
   // Fetch featured/seeded locations
   const fetchFeatured = useCallback(async () => {
     try {
@@ -189,29 +196,37 @@ export default function StudySpotsScreen() {
     }
   };
 
-  // Share handler
-  const handleSharePlace = async () => {
-    if (!user?.group_id) {
-      Alert.alert('No Group', 'Join a study group first to share locations with your team.');
-      return;
+  // Share handler — opens group picker first
+  const openGroupPicker = async (shareData: any) => {
+    setLoadingGroups(true);
+    setPendingShareData(shareData);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/groups/my-group`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.group) {
+          setUserGroups([data.group]);
+          setShowGroupPicker(true);
+        } else {
+          Alert.alert('No Group', 'Join a study group first to share locations.');
+        }
+      } else {
+        Alert.alert('No Group', 'Join a study group first to share locations.');
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Failed to load groups.');
+    } finally {
+      setLoadingGroups(false);
     }
+  };
 
+  const confirmShareToGroup = async (targetGroup: any) => {
+    setShowGroupPicker(false);
     setSharing(true);
     try {
-      const body: any = {};
-      if (selectedPlace) {
-        body.place_data = {
-          place_id: selectedPlace.place_id,
-          name: selectedPlace.name,
-          address: selectedPlace.address,
-          type: selectedPlace.type,
-          latitude: selectedPlace.latitude,
-          longitude: selectedPlace.longitude,
-          opening_hours: selectedPlace.opening_hours?.[0] || 'Check online',
-        };
-      } else if (selectedSeeded) {
-        body.location_id = selectedSeeded.location_id;
-      }
+      const body: any = { ...pendingShareData };
       if (meetingNote.trim()) {
         body.meeting_note = meetingNote.trim();
       }
@@ -227,7 +242,7 @@ export default function StudySpotsScreen() {
 
       if (response.ok) {
         const placeName = selectedPlace?.name || selectedSeeded?.name;
-        Alert.alert('Shared!', `"${placeName}" sent to your group chat.`, [
+        Alert.alert('Shared!', `"${placeName}" sent to ${targetGroup.group_name || targetGroup.course}.`, [
           { text: 'View Chat', onPress: () => { setSelectedPlace(null); setSelectedSeeded(null); setMeetingNote(''); router.push('/(tabs)/messages'); } },
           { text: 'OK', onPress: () => setMeetingNote('') },
         ]);
@@ -239,40 +254,28 @@ export default function StudySpotsScreen() {
       Alert.alert('Error', 'Network error');
     } finally {
       setSharing(false);
+      setPendingShareData(null);
     }
   };
 
+  const handleSharePlace = async () => {
+    const body: any = {};
+    if (selectedPlace) {
+      body.place_data = {
+        place_id: selectedPlace.place_id,
+        name: selectedPlace.name,
+        address: selectedPlace.address,
+        type: selectedPlace.type,
+        latitude: selectedPlace.latitude,
+        longitude: selectedPlace.longitude,
+        opening_hours: selectedPlace.opening_hours?.[0] || 'Check online',
+      };
+    }
+    openGroupPicker(body);
+  };
+
   const handleShareSeeded = async (loc: SeededLocation) => {
-    if (!user?.group_id) {
-      Alert.alert('No Group', 'Join a study group first to share locations with your team.');
-      return;
-    }
-
-    setSharing(true);
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/locations/share`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ location_id: loc.location_id, ...(meetingNote.trim() ? { meeting_note: meetingNote.trim() } : {}) }),
-      });
-
-      if (response.ok) {
-        Alert.alert('Shared!', `"${loc.name}" sent to your group chat.`, [
-          { text: 'View Chat', onPress: () => router.push('/(tabs)/messages') },
-          { text: 'OK' },
-        ]);
-      } else {
-        const data = await response.json();
-        Alert.alert('Error', data.detail || 'Failed to share');
-      }
-    } catch (e) {
-      Alert.alert('Error', 'Network error');
-    } finally {
-      setSharing(false);
-    }
+    openGroupPicker({ location_id: loc.location_id });
   };
 
   // =================== DETAIL VIEW (Google Place) ===================
@@ -616,6 +619,50 @@ export default function StudySpotsScreen() {
           </ScrollView>
         </>
       )}
+
+      {/* Group Picker Modal */}
+      <Modal visible={showGroupPicker} transparent animationType="slide">
+        <View style={gpStyles.overlay}>
+          <View style={gpStyles.card}>
+            <View style={gpStyles.header}>
+              <Text style={gpStyles.title}>Share to Group</Text>
+              <TouchableOpacity onPress={() => { setShowGroupPicker(false); setPendingShareData(null); }} style={gpStyles.closeBtn}>
+                <Ionicons name="close" size={22} color="#666" />
+              </TouchableOpacity>
+            </View>
+            <Text style={gpStyles.subtitle}>Choose which group to share this location with</Text>
+            {loadingGroups ? (
+              <ActivityIndicator size="large" color="#2DAFE3" style={{ padding: 32 }} />
+            ) : userGroups.length === 0 ? (
+              <View style={gpStyles.emptyRow}>
+                <Ionicons name="people-outline" size={32} color="#CCC" />
+                <Text style={gpStyles.emptyText}>No groups to share with</Text>
+              </View>
+            ) : (
+              userGroups.map((g) => (
+                <TouchableOpacity
+                  key={g.group_id}
+                  style={gpStyles.groupRow}
+                  onPress={() => confirmShareToGroup(g)}
+                  activeOpacity={0.7}
+                >
+                  <View style={gpStyles.groupAvatar}>
+                    <Text style={gpStyles.groupAvatarText}>
+                      {(g.group_name || g.course || 'S').charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={gpStyles.groupName}>{g.group_name || g.course}</Text>
+                    <Text style={gpStyles.groupSub}>{g.members?.length || 0} members</Text>
+                  </View>
+                  <Ionicons name="paper-plane" size={20} color="#2DAFE3" />
+                </TouchableOpacity>
+              ))
+            )}
+            <View style={{ height: 16 }} />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -715,4 +762,26 @@ const styles = StyleSheet.create({
   meetingHint: { fontSize: 13, color: '#999', marginBottom: 8 },
   meetingInput: { backgroundColor: '#F5F7FA', borderRadius: 10, borderWidth: 1, borderColor: '#E0E0E0', padding: 12, fontSize: 15, color: '#333', minHeight: 60, textAlignVertical: 'top' },
   meetingCharCount: { fontSize: 11, color: '#999', textAlign: 'right', marginTop: 4 },
+});
+
+const gpStyles = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
+  card: { backgroundColor: '#FFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, maxHeight: '60%' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  title: { fontSize: 20, fontWeight: '700', color: '#333' },
+  closeBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F5F5F5', justifyContent: 'center', alignItems: 'center' },
+  subtitle: { fontSize: 14, color: '#888', marginBottom: 16 },
+  groupRow: {
+    flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 14,
+    backgroundColor: '#F8F9FA', marginBottom: 8, borderWidth: 1, borderColor: '#E8E8E8',
+  },
+  groupAvatar: {
+    width: 46, height: 46, borderRadius: 23, backgroundColor: '#2DAFE3',
+    justifyContent: 'center', alignItems: 'center', marginRight: 12,
+  },
+  groupAvatarText: { fontSize: 18, fontWeight: '700', color: '#FFF' },
+  groupName: { fontSize: 16, fontWeight: '700', color: '#333' },
+  groupSub: { fontSize: 13, color: '#888', marginTop: 1 },
+  emptyRow: { alignItems: 'center', padding: 32 },
+  emptyText: { fontSize: 15, color: '#999', marginTop: 8 },
 });
