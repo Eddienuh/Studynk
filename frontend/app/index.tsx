@@ -8,6 +8,7 @@ import {
   Dimensions,
   Platform,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,11 +25,14 @@ import {
 } from '@expo-google-fonts/inter';
 
 const { width } = Dimensions.get('window');
+const studynkLogo = require('../assets/studynk-logo.png');
 
 export default function LandingPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  const [showSplash, setShowSplash] = useState(true);
 
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -37,6 +41,12 @@ export default function LandingPage() {
     Inter_700Bold,
     Inter_800ExtraBold,
   });
+
+  // Splash timer
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Auto-redirect logged-in users
   useEffect(() => {
@@ -80,13 +90,18 @@ export default function LandingPage() {
     }
   };
 
-  if (loading || !fontsLoaded) {
+  if (!fontsLoaded || showSplash) {
     return (
-      <View style={styles.loadingContainer}>
-        <View style={styles.loadingLogo}>
-          <Text style={styles.loadingLogoText}>S</Text>
-        </View>
-        <Text style={styles.loadingBrand}>Studynk</Text>
+      <View style={styles.splashContainer}>
+        <Image source={studynkLogo} style={styles.splashLogo} resizeMode="contain" />
+      </View>
+    );
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.splashContainer}>
+        <Image source={studynkLogo} style={styles.splashLogo} resizeMode="contain" />
         <ActivityIndicator size="large" color="#2563EB" style={{ marginTop: 24 }} />
       </View>
     );
@@ -110,13 +125,14 @@ export default function LandingPage() {
         style={styles.hero}
       >
         <View style={styles.heroNav}>
-          <Text style={styles.heroNavBrand}>Studynk</Text>
+          <Image source={studynkLogo} style={styles.navLogo} resizeMode="contain" />
           <TouchableOpacity style={styles.heroLoginBtn} onPress={() => router.push('/login')}>
             <Text style={styles.heroLoginText}>Log In</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.heroContent}>
+          <Image source={studynkLogo} style={styles.heroLogo} resizeMode="contain" />
           <Text style={styles.heroHeadline}>
             Find your perfect{'\n'}study partner at{'\n'}
             <Text style={styles.heroHighlight}>your university</Text>.
@@ -291,11 +307,9 @@ function PricingFeature({ text }: { text: string }) {
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: '#FFF' },
 
-  /* Loading */
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF' },
-  loadingLogo: { width: 80, height: 80, borderRadius: 20, backgroundColor: '#1A365D', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
-  loadingLogoText: { fontSize: 36, fontWeight: '800', color: '#FFF' },
-  loadingBrand: { fontSize: 28, fontWeight: '800', color: '#1A365D' },
+  /* Splash */
+  splashContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF' },
+  splashLogo: { width: 180, height: 180 },
 
   /* Hero */
   hero: { paddingTop: Platform.OS === 'web' ? 0 : 44, paddingBottom: 56 },
@@ -303,13 +317,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 24, paddingVertical: 16,
   },
-  heroNavBrand: { fontSize: 22, fontWeight: '800', color: '#FFF', fontFamily: 'Inter_800ExtraBold' },
+  navLogo: { width: 120, height: 40 },
   heroLoginBtn: {
     paddingVertical: 8, paddingHorizontal: 20, borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
   },
   heroLoginText: { color: '#FFF', fontSize: 14, fontWeight: '600', fontFamily: 'Inter_600SemiBold' },
-  heroContent: { alignItems: 'center', paddingHorizontal: 24, paddingTop: 32 },
+  heroContent: { alignItems: 'center', paddingHorizontal: 24, paddingTop: 16 },
+  heroLogo: { width: 140, height: 140, marginBottom: 16 },
   heroHeadline: {
     fontSize: width > 600 ? 42 : 32, fontWeight: '800', color: '#FFF', textAlign: 'center',
     lineHeight: width > 600 ? 52 : 42, fontFamily: 'Inter_800ExtraBold', marginBottom: 16,
