@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,7 +21,9 @@ export default function WelcomeScreen() {
           <Text style={styles.launchBannerText}>Public Beta — Now Live</Text>
         </View>
 
-        <Image source={require('../assets/logo.png')} style={styles.logo} />
+        <View style={styles.logoBox}>
+          <Ionicons name="school" size={40} color="#FFF" />
+        </View>
 
         <Text style={styles.title}>Studynk</Text>
         <Text style={styles.tagline}>The Verified Way to Find{"\n"}Your Study Squad.</Text>
@@ -126,7 +128,10 @@ const styles = StyleSheet.create({
   },
   launchBannerText: { color: '#FFF', fontSize: 14, fontWeight: '700', marginLeft: 8 },
 
-  logo: { width: 100, height: 100, marginBottom: 12, borderRadius: 20 },
+  logoBox: {
+    width: 88, height: 88, borderRadius: 22, backgroundColor: '#2DAFE3',
+    justifyContent: 'center', alignItems: 'center', marginBottom: 12,
+  },
   title: { fontSize: 32, fontWeight: 'bold', color: '#2DAFE3', marginBottom: 6 },
   tagline: { fontSize: 18, color: '#666', textAlign: 'center', marginBottom: 16, lineHeight: 26 },
 
