@@ -23,7 +23,10 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.studymatch.app",
-      "permissions": ["CAMERA", "READ_MEDIA_IMAGES"]
+      "permissions": [
+        "CAMERA",
+        "READ_MEDIA_IMAGES"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -51,7 +54,8 @@
           "photosPermission": "Choose a profile photo from your library",
           "cameraPermission": "Take a profile photo for your account"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
