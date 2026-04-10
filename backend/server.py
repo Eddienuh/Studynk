@@ -1492,7 +1492,7 @@ async def report_user(request: Request):
 
 @api_router.post("/reviews/submit")
 async def submit_review(request: Request):
-    """Submit a star review for the StudyMatch app"""
+    """Submit a star review for the Studynk app"""
     user = await get_current_user(request)
     body = await request.json()
 
@@ -1550,7 +1550,7 @@ async def get_review_stats(request: Request):
 
 @api_router.get("/")
 async def root():
-    return {"message": "StudyMatch API v1.0"}
+    return {"message": "Studynk API v1.0"}
 
 @api_router.get("/health")
 async def health_check():
@@ -1913,15 +1913,15 @@ async def create_checkout_session(request: Request):
     # Plan configuration
     PLAN_CONFIG = {
         "basic": {
-            "lookup_key": "studymatch_basic_monthly",
-            "product_name": "StudyMatch Basic",
+            "lookup_key": "studynk_basic_monthly",
+            "product_name": "Studynk Basic",
             "description": "Smart study group matching, group messaging, study streak tracking",
             "unit_amount": 299,  # £2.99
             "trial_days": 0,
         },
         "pro": {
-            "lookup_key": "studymatch_pro_monthly",
-            "product_name": "StudyMatch Pro",
+            "lookup_key": "studynk_pro_monthly",
+            "product_name": "Studynk Pro",
             "description": "Premium study group features: advanced matching, unlimited groups, priority support",
             "unit_amount": 499,  # £4.99
             "trial_days": 30,

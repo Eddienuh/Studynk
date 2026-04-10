@@ -22,12 +22,12 @@ export default function TermsScreen() {
 
         <Text style={styles.sectionTitle}>1. Acceptance of Terms</Text>
         <Text style={styles.paragraph}>
-          By creating an account or using StudyMatch, you agree to these Terms of Service. If you do not agree, do not use the app.
+          By creating an account or using Studynk, you agree to these Terms of Service. If you do not agree, do not use the app.
         </Text>
 
         <Text style={styles.sectionTitle}>2. Description of Service</Text>
         <Text style={styles.paragraph}>
-          StudyMatch is a platform that connects university students into compatible study groups based on course, schedule, study style, and preferences.
+          Studynk is a platform that connects university students into compatible study groups based on course, schedule, study style, and preferences.
         </Text>
 
         <Text style={styles.sectionTitle}>3. User Accounts</Text>
@@ -37,12 +37,12 @@ export default function TermsScreen() {
 
         <Text style={styles.sectionTitle}>4. Acceptable Use</Text>
         <Text style={styles.paragraph}>
-          You agree not to use StudyMatch for any unlawful purpose, to harass other users, to share inappropriate content, or to attempt to access other users' accounts.
+          You agree not to use Studynk for any unlawful purpose, to harass other users, to share inappropriate content, or to attempt to access other users' accounts.
         </Text>
 
         <Text style={styles.sectionTitle}>5. Subscriptions & Payments</Text>
         <Text style={styles.paragraph}>
-          StudyMatch offers Basic (free) and Pro subscription tiers. Pro subscriptions are billed at £3.99 per month through Stripe and include a 30-day free trial.
+          Studynk offers Basic (£2.99/mo) and Pro (£4.99/mo) subscription tiers through Stripe. Pro includes a 30-day free trial.{"\n\n"}Digital services (Boosts) are non-refundable once activated. Users waive the 14-day cancellation right upon accessing Pro features.
         </Text>
         <Text style={styles.paragraph}>
           Subscription auto-renews at £3.99/month unless cancelled at least 24 hours before the trial or current billing period ends. You may cancel at any time through your account settings. Refunds are subject to our refund policy.
@@ -55,7 +55,7 @@ export default function TermsScreen() {
 
         <Text style={styles.sectionTitle}>7. Limitation of Liability</Text>
         <Text style={styles.paragraph}>
-          StudyMatch is provided "as is" without warranties. We are not liable for any indirect, incidental, or consequential damages arising from your use of the service.
+          Studynk is provided "as is" without warranties. We are not liable for any indirect, incidental, or consequential damages arising from your use of the service.
         </Text>
 
         <Text style={styles.sectionTitle}>8. Changes to Terms</Text>
@@ -65,7 +65,7 @@ export default function TermsScreen() {
 
         <Text style={styles.sectionTitle}>9. Contact</Text>
         <Text style={styles.paragraph}>
-          For questions about these terms, contact us at support@studymatch.app
+          For questions about these terms, contact us at studynk0@outlook.com
         </Text>
       </ScrollView>
     </SafeAreaView>

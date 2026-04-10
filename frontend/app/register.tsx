@@ -109,7 +109,7 @@ export default function RegisterScreen() {
               <Ionicons name="person-add" size={40} color="#2DAFE3" />
             </View>
             <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Join StudyMatch and find your perfect study group</Text>
+            <Text style={styles.subtitle}>Join Studynk and find your perfect study group</Text>
           </View>
 
           {error ? (

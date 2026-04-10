@@ -154,7 +154,7 @@ export default function LoginScreen() {
               <Ionicons name="log-in" size={40} color="#2DAFE3" />
             </View>
             <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to your StudyMatch account</Text>
+            <Text style={styles.subtitle}>Sign in to your Studynk account</Text>
           </View>
 
           {error ? (

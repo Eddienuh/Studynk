@@ -21,13 +21,13 @@ export default function PrivacyPolicyScreen() {
 
         <Text style={styles.sectionTitle}>1. Introduction</Text>
         <Text style={styles.text}>
-StudyMatch ("we", "us", "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and services.
+Studynk ("we", "us", "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and services.
         </Text>
 
         <Text style={styles.sectionTitle}>2. Data Controller</Text>
         <Text style={styles.text}>
-StudyMatch is the data controller responsible for your personal data.
-{"\n\n"}Contact: privacy@studymatch.com
+Studynk is the data controller responsible for your personal data.
+{"\n\n"}Contact: studynk0@outlook.com
 {"\n"}Registered in England and Wales
         </Text>
 
@@ -107,7 +107,7 @@ You have the right to:
 {"\n"}• Object: Object to processing based on legitimate interest
 {"\n"}• Restrict Processing: Limit how we use your data
 {"\n"}• Withdraw Consent: At any time, without affecting prior processing
-{"\n\n"}To exercise these rights, contact: privacy@studymatch.com
+{"\n\n"}To exercise these rights, contact: studynk0@outlook.com
         </Text>
 
         <Text style={styles.sectionTitle}>9. Data Security</Text>
@@ -118,7 +118,7 @@ We implement industry-standard security measures:
 {"\n"}• Secure authentication (Google OAuth)
 {"\n"}• Regular security audits
 {"\n"}• Access controls and logging
-{"\n\n"}Note: Payments are securely processed by Stripe. StudyMatch does not store credit card details.
+{"\n\n"}Note: Payments are securely processed by Stripe. Studynk does not store credit card details.
         </Text>
 
         <Text style={styles.sectionTitle}>10. International Transfers</Text>
@@ -128,7 +128,7 @@ Your data is primarily stored in the UK/EU. If transferred outside the EEA, we e
 
         <Text style={styles.sectionTitle}>11. Children's Privacy</Text>
         <Text style={styles.text}>
-StudyMatch is intended for users aged 16 and over. We do not knowingly collect data from children under 16. If we discover such data, it will be deleted immediately.
+Studynk is intended for users aged 16 and over. We do not knowingly collect data from children under 16. If we discover such data, it will be deleted immediately.
         </Text>
 
         <Text style={styles.sectionTitle}>12. Cookies & Tracking</Text>
@@ -147,7 +147,7 @@ We may update this Privacy Policy. Material changes will be notified via email o
         <Text style={styles.sectionTitle}>14. Contact & Complaints</Text>
         <Text style={styles.text}>
 For privacy concerns or to exercise your rights:
-{"\n\n"}Email: privacy@studymatch.com
+{"\n\n"}Email: studynk0@outlook.com
 {"\n\n"}You also have the right to lodge a complaint with the Information Commissioner's Office (ICO):
 {"\n"}Website: ico.org.uk
 {"\n"}Phone: 0303 123 1113

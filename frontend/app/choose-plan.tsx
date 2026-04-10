@@ -30,10 +30,10 @@ export default function ChoosePlanScreen() {
     try {
       const welcomeRoute = selectedPlan === 'pro' ? '/pro-welcome' : '/(tabs)';
       const successUrl = Platform.OS === 'web'
-        ? (typeof window !== 'undefined' ? `${window.location.origin}${welcomeRoute}` : Linking.createURL(welcomeRoute))
+        ? `https://studynk.co.uk${welcomeRoute}`
         : Linking.createURL(welcomeRoute);
       const cancelUrl = Platform.OS === 'web'
-        ? (typeof window !== 'undefined' ? `${window.location.origin}/choose-plan` : Linking.createURL('/choose-plan'))
+        ? 'https://studynk.co.uk/choose-plan'
         : Linking.createURL('/choose-plan');
 
       const response = await fetch(`${BACKEND_URL}/api/stripe/create-checkout-session`, {

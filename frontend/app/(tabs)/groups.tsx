@@ -129,8 +129,8 @@ export default function GroupsScreen() {
   };
 
   const handleInviteViaEmail = () => {
-    const subject = encodeURIComponent('Join my Study Group on StudyMatch!');
-    const body = encodeURIComponent('Hey! I\'m using StudyMatch to find compatible study partners. Check it out and join my group!\n\nhttps://studymatch.app');
+    const subject = encodeURIComponent('Join my Study Group on Studynk!');
+    const body = encodeURIComponent('Hey! I\'m using Studynk to find compatible study partners. Check it out and join my group!\n\nhttps://studynk.co.uk');
     Linking.openURL(`mailto:?subject=${subject}&body=${body}`);
   };
 
@@ -181,10 +181,10 @@ export default function GroupsScreen() {
 
   const handleShareGroup = async () => {
     if (!group) return;
-    const APP_URL = BACKEND_URL || 'https://studymatch.app';
+    const APP_URL = 'https://studynk.co.uk';
     try {
       await Share.share({
-        message: `Join my study group on StudyMatch! Click here to join the session: ${APP_URL}/join/${group.group_id}`,
+        message: `Join my study group on Studynk! Click here to join the session: ${APP_URL}/join/${group.group_id}`,
       });
     } catch (error) {
       console.error('Share error:', error);

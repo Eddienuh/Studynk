@@ -172,8 +172,8 @@ export default function HomeScreen() {
   const handleInviteViaEmail = (email?: string) => {
     const to = email || inviteEmail.trim();
     if (!to) { Alert.alert('Enter Email', 'Please enter an email address.'); return; }
-    const subject = encodeURIComponent('Join me on StudyMatch!');
-    const body = encodeURIComponent('Hey! I\'m using StudyMatch to find compatible study partners at university. You should check it out!\n\nhttps://studymatch.app');
+    const subject = encodeURIComponent('Join me on Studynk!');
+    const body = encodeURIComponent('Hey! I\'m using Studynk to find compatible study partners at university. You should check it out!\n\nhttps://studynk.co.uk');
     Linking.openURL(`mailto:${to}?subject=${subject}&body=${body}`);
     setInviteEmail('');
   };
@@ -181,7 +181,7 @@ export default function HomeScreen() {
   const handleInviteViaSMS = (phone?: string) => {
     const to = phone || invitePhone.trim();
     if (!to) { Alert.alert('Enter Phone', 'Please enter a phone number.'); return; }
-    const body = encodeURIComponent('Hey! Check out StudyMatch - it matches uni students into study groups. https://studymatch.app');
+    const body = encodeURIComponent('Hey! Check out Studynk - it matches uni students into study groups. https://studynk.co.uk');
     const sep = Platform.OS === 'ios' ? '&' : '?';
     Linking.openURL(`sms:${to}${sep}body=${body}`);
     setInvitePhone('');
