@@ -200,3 +200,12 @@ credentials.json
 *.pem
 *.key
 .credentials
+additional_tests.py
+auth_testing.md
+backend_security_test.py
+backend_test.py
+debug_onboarding.py
+new_endpoints_test.py
+test_result.md
+test_reports/
+.env.frontend
