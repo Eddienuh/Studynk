@@ -187,7 +187,6 @@ yarn-error.*
 app-example
 .metro-cache/
 dist/
-frontend/
 .metro-cache/
 dist/
 node_modules/
