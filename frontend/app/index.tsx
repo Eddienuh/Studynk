@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
 
   /* Splash */
   splashContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF' },
-  splashLogo: { width: 180, height: 180 },
+  splashLogo: { width: 180, height: 180, borderRadius: 36 },
 
   /* Hero */
   hero: { paddingTop: Platform.OS === 'web' ? 0 : 44, paddingBottom: 56 },
@@ -317,14 +317,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 24, paddingVertical: 16,
   },
-  navLogo: { width: 120, height: 40 },
+  navLogo: { width: 120, height: 40, borderRadius: 8 },
   heroLoginBtn: {
     paddingVertical: 8, paddingHorizontal: 20, borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
   },
   heroLoginText: { color: '#FFF', fontSize: 14, fontWeight: '600', fontFamily: 'Inter_600SemiBold' },
   heroContent: { alignItems: 'center', paddingHorizontal: 24, paddingTop: 16 },
-  heroLogo: { width: 140, height: 140, marginBottom: 16 },
+  heroLogo: { width: 140, height: 140, borderRadius: 28, marginBottom: 16, overflow: 'hidden' },
   heroHeadline: {
     fontSize: width > 600 ? 42 : 32, fontWeight: '800', color: '#FFF', textAlign: 'center',
     lineHeight: width > 600 ? 52 : 42, fontFamily: 'Inter_800ExtraBold', marginBottom: 16,
