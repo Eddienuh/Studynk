@@ -151,7 +151,7 @@ export default function LoginScreen() {
 
           <View style={styles.headerSection}>
             <View style={styles.iconContainer}>
-              <Ionicons name="log-in" size={40} color="#1A365D" />
+              <Ionicons name="log-in" size={40} color="#2DAFE3" />
             </View>
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>Sign in to your Studynk account</Text>
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   loginButton: {
-    backgroundColor: '#1A365D',
+    backgroundColor: '#2DAFE3',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
   },
   footerLink: {
     fontSize: 15,
-    color: '#1A365D',
+    color: '#2DAFE3',
     fontWeight: '600',
   },
 });
