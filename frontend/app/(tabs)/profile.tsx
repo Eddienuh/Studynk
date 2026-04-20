@@ -278,7 +278,7 @@ export default function ProfileScreen() {
         <View style={[styles.section, { backgroundColor: theme.bg }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Academic Information</Text>
           <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
-            <View style={styles.infoRow}>
+            <View style={[styles.infoRow, { borderBottomColor: theme.divider }, !user.course && { borderBottomWidth: 0 }]}>
               <Ionicons name="school" size={20} color="#2DAFE3" />
               <View style={styles.infoContent}>
                 <Text style={[styles.infoLabel, { color: theme.textMuted }]}>University</Text>
@@ -286,7 +286,7 @@ export default function ProfileScreen() {
               </View>
             </View>
             {user.course && (
-              <View style={styles.infoRow}>
+              <View style={[styles.infoRow, { borderBottomColor: theme.divider, borderBottomWidth: 0 }]}>
                 <Ionicons name="book" size={20} color="#2DAFE3" />
                 <View style={styles.infoContent}>
                   <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Course</Text>
@@ -302,7 +302,7 @@ export default function ProfileScreen() {
         <View style={[styles.section, { backgroundColor: theme.bg }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Study Preferences</Text>
           <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
-            <View style={styles.infoRow}>
+            <View style={[styles.infoRow, { borderBottomColor: theme.divider }]}>
               <Ionicons name="bulb" size={20} color="#2DAFE3" />
               <View style={styles.infoContent}>
                 <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Study Style</Text>
@@ -310,7 +310,7 @@ export default function ProfileScreen() {
               </View>
             </View>
             {user.grade_goal && (
-              <View style={styles.infoRow}>
+              <View style={[styles.infoRow, { borderBottomColor: theme.divider }]}>
                 <Ionicons name="trophy" size={20} color="#2DAFE3" />
                 <View style={styles.infoContent}>
                   <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Grade Goal</Text>
@@ -319,7 +319,7 @@ export default function ProfileScreen() {
               </View>
             )}
             {user.location_preference && (
-              <View style={styles.infoRow}>
+              <View style={[styles.infoRow, { borderBottomColor: theme.divider, borderBottomWidth: 0 }]}>
                 <Ionicons name="location" size={20} color="#2DAFE3" />
                 <View style={styles.infoContent}>
                   <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Preferred Location</Text>
