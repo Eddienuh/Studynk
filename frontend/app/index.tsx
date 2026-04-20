@@ -101,7 +101,7 @@ export default function LandingPage() {
     return (
       <View style={styles.splashContainer}>
         <Image source={studynkLogo} style={styles.splashLogo} resizeMode="contain" />
-        <ActivityIndicator size="large" color="#2563EB" style={{ marginTop: 24 }} />
+        <ActivityIndicator size="large" color="#2DAFE3" style={{ marginTop: 24 }} />
       </View>
     );
   }
@@ -113,7 +113,7 @@ export default function LandingPage() {
     <ScrollView style={styles.page} bounces={false} showsVerticalScrollIndicator={false}>
       {/* ───── HERO ───── */}
       <LinearGradient
-        colors={['#2563EB', '#60A5FA']}
+        colors={['#2DAFE3', '#7DD3FC']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.hero}
@@ -187,7 +187,7 @@ export default function LandingPage() {
           {/* Basic */}
           <View style={styles.pricingCard}>
             <View style={styles.pricingIconBox}>
-              <Ionicons name="star" size={24} color="#2563EB" />
+              <Ionicons name="star" size={24} color="#2DAFE3" />
             </View>
             <Text style={styles.pricingName}>Basic</Text>
             <Text style={styles.pricingPrice}>
@@ -280,7 +280,7 @@ function StepCard({ step, icon, title, desc }: { step: string; icon: any; title:
         <Text style={styles.stepBadgeText}>{step}</Text>
       </View>
       <View style={styles.stepIconBox}>
-        <Ionicons name={icon} size={28} color="#2563EB" />
+        <Ionicons name={icon} size={28} color="#2DAFE3" />
       </View>
       <Text style={styles.stepTitle}>{title}</Text>
       <Text style={styles.stepDesc}>{desc}</Text>
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     lineHeight: 24, fontFamily: 'Inter_400Regular', marginBottom: 32, maxWidth: 400,
   },
   heroCta: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#1E3A5F',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#2DAFE3',
     paddingVertical: 16, paddingHorizontal: 36, borderRadius: 12,
     minHeight: 52,
   },
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   proofDivider: { width: 48, height: 2, backgroundColor: '#E5E7EB', marginVertical: 24 },
   statsRow: { flexDirection: 'row', justifyContent: 'center', gap: width > 600 ? 48 : 32 },
   statItem: { alignItems: 'center' },
-  statNumber: { fontSize: 28, fontWeight: '800', color: '#2563EB', fontFamily: 'Inter_800ExtraBold' },
+  statNumber: { fontSize: 28, fontWeight: '800', color: '#2DAFE3', fontFamily: 'Inter_800ExtraBold' },
   statLabel: { fontSize: 14, color: '#6B7280', marginTop: 2, fontFamily: 'Inter_500Medium' },
 
   /* How It Works */
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   },
   stepBadge: {
     position: 'absolute', top: -10, left: 20,
-    width: 28, height: 28, borderRadius: 14, backgroundColor: '#2563EB',
+    width: 28, height: 28, borderRadius: 14, backgroundColor: '#2DAFE3',
     justifyContent: 'center', alignItems: 'center',
   },
   stepBadgeText: { color: '#FFF', fontSize: 13, fontWeight: '800', fontFamily: 'Inter_800ExtraBold' },
@@ -399,15 +399,15 @@ const styles = StyleSheet.create({
     width: 48, height: 48, borderRadius: 14, backgroundColor: '#EFF6FF',
     justifyContent: 'center', alignItems: 'center', marginBottom: 12,
   },
-  pricingName: { fontSize: 22, fontWeight: '700', color: '#2563EB', fontFamily: 'Inter_700Bold' },
-  pricingPrice: { fontSize: 36, fontWeight: '800', color: '#2563EB', fontFamily: 'Inter_800ExtraBold', marginVertical: 4 },
+  pricingName: { fontSize: 22, fontWeight: '700', color: '#2DAFE3', fontFamily: 'Inter_700Bold' },
+  pricingPrice: { fontSize: 36, fontWeight: '800', color: '#2DAFE3', fontFamily: 'Inter_800ExtraBold', marginVertical: 4 },
   pricingPeriod: { fontSize: 16, fontWeight: '400', color: '#9CA3AF' },
   pricingTagline: { fontSize: 15, color: '#6B7280', marginBottom: 16, fontFamily: 'Inter_500Medium' },
   pricingFeatures: { marginBottom: 20 },
   featureRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   featureText: { fontSize: 15, color: '#374151', marginLeft: 10, flex: 1, fontFamily: 'Inter_500Medium' },
   pricingBtn: {
-    backgroundColor: '#2563EB', paddingVertical: 14, borderRadius: 10,
+    backgroundColor: '#2DAFE3', paddingVertical: 14, borderRadius: 10,
     alignItems: 'center', minHeight: 48, justifyContent: 'center',
   },
   pricingBtnPro: { backgroundColor: '#F59E0B' },
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
   installTitle: { fontSize: 22, fontWeight: '700', color: '#111827', textAlign: 'center', fontFamily: 'Inter_700Bold', marginBottom: 8 },
   installSub: { fontSize: 15, color: '#6B7280', textAlign: 'center', fontFamily: 'Inter_400Regular', marginBottom: 24 },
   installBtn: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#1E3A5F',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#2DAFE3',
     paddingVertical: 16, paddingHorizontal: 32, borderRadius: 12, minHeight: 52,
   },
   installBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700', fontFamily: 'Inter_700Bold', marginLeft: 10 },
