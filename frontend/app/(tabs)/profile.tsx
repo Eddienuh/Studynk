@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  RefreshControl,
   TouchableOpacity,
   Image,
   Alert,
@@ -26,6 +27,13 @@ export default function ProfileScreen() {
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refreshUser();
+    setRefreshing(false);
+  };
   const [subTier, setSubTier] = useState('free');
 
   useEffect(() => {
@@ -208,7 +216,10 @@ export default function ProfileScreen() {
   const profilePhoto = user?.profile_photo || user?.picture;
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.bg }]}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.bg }]}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
       <View style={styles.header}>
         <TouchableOpacity onPress={showPhotoOptions} style={styles.avatarContainer}>
           {uploading ? (
