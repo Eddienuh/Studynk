@@ -220,7 +220,7 @@ export default function ProfileScreen() {
       style={[styles.container, { backgroundColor: theme.bg }]}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: theme.headerBg }]}>
         <TouchableOpacity onPress={showPhotoOptions} style={styles.avatarContainer}>
           {uploading ? (
             <View style={styles.avatarPlaceholder}>
@@ -239,16 +239,16 @@ export default function ProfileScreen() {
             <Ionicons name="camera" size={16} color="#FFF" />
           </View>
         </TouchableOpacity>
-        <Text style={styles.name}>{user?.name}</Text>
-        <Text style={styles.email}>{user?.email}</Text>
+        <Text style={[styles.name, { color: theme.text }]}>{user?.name}</Text>
+        <Text style={[styles.email, { color: theme.textSecondary }]}>{user?.email}</Text>
         <TouchableOpacity onPress={showPhotoOptions} style={styles.changePhotoLink}>
           <Text style={styles.changePhotoText}>Change Photo</Text>
         </TouchableOpacity>
       </View>
 
       {/* Subscription Card */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Subscription</Text>
+      <View style={[styles.section, { backgroundColor: theme.bg }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Subscription</Text>
         <View style={styles.subCard}>
           <View style={styles.subLeft}>
             <View style={[styles.subBadge, subTier === 'pro' ? styles.subBadgePro : subTier === 'basic' ? styles.subBadgeBasic : styles.subBadgeFree]}>
@@ -275,22 +275,22 @@ export default function ProfileScreen() {
       </View>
 
       {user?.university && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Academic Information</Text>
-          <View style={styles.card}>
+        <View style={[styles.section, { backgroundColor: theme.bg }]}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Academic Information</Text>
+          <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
             <View style={styles.infoRow}>
               <Ionicons name="school" size={20} color="#2DAFE3" />
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>University</Text>
-                <Text style={styles.infoValue}>{user.university}</Text>
+                <Text style={[styles.infoLabel, { color: theme.textMuted }]}>University</Text>
+                <Text style={[styles.infoValue, { color: theme.text }]}>{user.university}</Text>
               </View>
             </View>
             {user.course && (
               <View style={styles.infoRow}>
                 <Ionicons name="book" size={20} color="#2DAFE3" />
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Course</Text>
-                  <Text style={styles.infoValue}>{user.course}</Text>
+                  <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Course</Text>
+                  <Text style={[styles.infoValue, { color: theme.text }]}>{user.course}</Text>
                 </View>
               </View>
             )}
@@ -299,22 +299,22 @@ export default function ProfileScreen() {
       )}
 
       {user?.study_style && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Study Preferences</Text>
-          <View style={styles.card}>
+        <View style={[styles.section, { backgroundColor: theme.bg }]}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Study Preferences</Text>
+          <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
             <View style={styles.infoRow}>
               <Ionicons name="bulb" size={20} color="#2DAFE3" />
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Study Style</Text>
-                <Text style={styles.infoValue}>{user.study_style}</Text>
+                <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Study Style</Text>
+                <Text style={[styles.infoValue, { color: theme.text }]}>{user.study_style}</Text>
               </View>
             </View>
             {user.grade_goal && (
               <View style={styles.infoRow}>
                 <Ionicons name="trophy" size={20} color="#2DAFE3" />
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Grade Goal</Text>
-                  <Text style={styles.infoValue}>{user.grade_goal}</Text>
+                  <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Grade Goal</Text>
+                  <Text style={[styles.infoValue, { color: theme.text }]}>{user.grade_goal}</Text>
                 </View>
               </View>
             )}
@@ -322,8 +322,8 @@ export default function ProfileScreen() {
               <View style={styles.infoRow}>
                 <Ionicons name="location" size={20} color="#2DAFE3" />
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Preferred Location</Text>
-                  <Text style={styles.infoValue}>{user.location_preference}</Text>
+                  <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Preferred Location</Text>
+                  <Text style={[styles.infoValue, { color: theme.text }]}>{user.location_preference}</Text>
                 </View>
               </View>
             )}
@@ -331,9 +331,9 @@ export default function ProfileScreen() {
         </View>
       )}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('profile.settings.title')}</Text>
-        <View style={styles.card}>
+      <View style={[styles.section, { backgroundColor: theme.bg }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('profile.settings.title')}</Text>
+        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
           <TouchableOpacity style={styles.settingsItem} onPress={handleEditProfile}>
             <Ionicons name="create-outline" size={24} color="#2DAFE3" />
             <Text style={styles.settingsText}>{t('profile.settings.editProfile')}</Text>
@@ -387,16 +387,16 @@ export default function ProfileScreen() {
       </TouchableOpacity>
 
       {/* Legal & Safety */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Legal & Safety</Text>
-        <View style={styles.card}>
-          <View style={styles.legalRow}>
+      <View style={[styles.section, { backgroundColor: theme.bg }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Legal & Safety</Text>
+        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
+          <View style={[styles.legalRow, { borderBottomColor: theme.divider }]}>
             <Ionicons name="time-outline" size={20} color="#888" />
-            <Text style={styles.legalText}>Accounts inactive for 24 months will be deleted.</Text>
+            <Text style={[styles.legalText, { color: theme.textSecondary }]}>Accounts inactive for 24 months will be deleted.</Text>
           </View>
-          <View style={styles.legalRow}>
+          <View style={[styles.legalRow, { borderBottomColor: theme.divider }]}>
             <Ionicons name="card-outline" size={20} color="#888" />
-            <Text style={styles.legalText}>
+            <Text style={[styles.legalText, { color: theme.textSecondary }]}>
               As Studynk provides instant digital access to Priority Boosts, all sales are final. By upgrading, you waive your 14-day right to cancel. Contact studynk0@outlook.com for support.
             </Text>
           </View>
