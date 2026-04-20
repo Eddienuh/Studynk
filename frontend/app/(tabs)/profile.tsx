@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -20,6 +21,7 @@ const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export default function ProfileScreen() {
   const { user, logout, token, refreshUser } = useAuth();
+  const { theme, isDark, toggleTheme } = useTheme();
   const { t } = useLanguage();
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
@@ -206,7 +208,7 @@ export default function ProfileScreen() {
   const profilePhoto = user?.profile_photo || user?.picture;
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.bg }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={showPhotoOptions} style={styles.avatarContainer}>
           {uploading ? (
@@ -351,6 +353,21 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
         </View>
+      </View>
+
+      {/* Appearance */}
+      <View style={[styles.section, { backgroundColor: theme.card, borderRadius: 12, marginHorizontal: 16, marginBottom: 12, padding: 16 }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Appearance</Text>
+        <TouchableOpacity style={styles.themeToggleRow} onPress={toggleTheme} activeOpacity={0.7}>
+          <Ionicons name={isDark ? 'moon' : 'sunny'} size={22} color={isDark ? '#FFD700' : '#FF9800'} />
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text style={[styles.themeToggleLabel, { color: theme.text }]}>Dark Mode</Text>
+            <Text style={{ fontSize: 13, color: theme.textMuted }}>{isDark ? 'On' : 'Off'}</Text>
+          </View>
+          <View style={[styles.themeToggle, isDark && styles.themeToggleActive]}>
+            <View style={[styles.themeToggleThumb, isDark && styles.themeToggleThumbActive]} />
+          </View>
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -575,6 +592,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
+  },
+  themeToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  themeToggleLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  themeToggle: {
+    width: 48,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#DDD',
+    padding: 2,
+    justifyContent: 'center',
+  },
+  themeToggleActive: {
+    backgroundColor: '#2DAFE3',
+  },
+  themeToggleThumb: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FFF',
+  },
+  themeToggleThumbActive: {
+    alignSelf: 'flex-end',
   },
   footer: {
     alignItems: 'center',

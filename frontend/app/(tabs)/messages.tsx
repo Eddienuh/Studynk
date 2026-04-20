@@ -11,10 +11,12 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function MessagesScreen() {
   const { user, token } = useAuth();
+  const { theme } = useTheme();
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [group, setGroup] = useState<any>(null);
@@ -96,9 +98,9 @@ export default function MessagesScreen() {
   // ───── No Group ─────
   if (!group) {
     return (
-      <View style={styles.container}>
-        <View style={styles.listHeader}>
-          <Text style={styles.listTitle}>Messages</Text>
+      <View style={[styles.container, { backgroundColor: theme.bg }]}>
+        <View style={[styles.listHeader, { backgroundColor: theme.headerBg, borderBottomColor: theme.divider }]}>
+          <Text style={[styles.listTitle, { color: theme.accent }]}>Messages</Text>
         </View>
         <View style={styles.emptyState}>
           <Ionicons name="chatbubbles-outline" size={64} color="#CCC" />
@@ -114,7 +116,7 @@ export default function MessagesScreen() {
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
+        style={[styles.container, { backgroundColor: theme.bg }]}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         {/* Chat Header */}
@@ -208,9 +210,9 @@ export default function MessagesScreen() {
 
   // ───── WhatsApp-style Conversation List ─────
   return (
-    <View style={styles.container}>
-      <View style={styles.listHeader}>
-        <Text style={styles.listTitle}>Messages</Text>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
+      <View style={[styles.listHeader, { backgroundColor: theme.headerBg, borderBottomColor: theme.divider }]}>
+        <Text style={[styles.listTitle, { color: theme.accent }]}>Messages</Text>
       </View>
 
       <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>

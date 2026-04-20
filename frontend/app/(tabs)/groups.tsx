@@ -14,12 +14,14 @@ import {
   Linking,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export default function GroupsScreen() {
   const { user, token } = useAuth();
+  const { theme } = useTheme();
   const [group, setGroup] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -375,10 +377,10 @@ export default function GroupsScreen() {
   const groups = group ? [group] : [];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       {/* List Header */}
-      <View style={styles.listHeader}>
-        <Text style={styles.listTitle}>Groups</Text>
+      <View style={[styles.listHeader, { backgroundColor: theme.headerBg, borderBottomColor: theme.divider }]}>
+        <Text style={[styles.listTitle, { color: theme.accent }]}>Groups</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity
             style={styles.searchToggleBtn}

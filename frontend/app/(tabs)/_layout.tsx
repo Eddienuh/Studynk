@@ -3,9 +3,11 @@ import { View, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
+import { ThemeProvider, useTheme } from '../../contexts/ThemeContext';
 
-export default function TabLayout() {
+function TabsContent() {
   const { token } = useAuth();
+  const { theme } = useTheme();
   const [invitationCount, setInvitationCount] = useState(0);
 
   const fetchInvitationCount = useCallback(async () => {
@@ -32,11 +34,11 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#2DAFE3',
-        tabBarInactiveTintColor: '#999',
+        tabBarActiveTintColor: theme.accent,
+        tabBarInactiveTintColor: theme.textMuted,
         tabBarStyle: {
-          backgroundColor: '#FFF',
-          borderTopColor: '#E0E0E0',
+          backgroundColor: theme.tabBar,
+          borderTopColor: theme.tabBorder,
           borderTopWidth: 1,
           paddingBottom: 8,
           paddingTop: 8,
@@ -72,7 +74,6 @@ export default function TabLayout() {
         }}
         listeners={{
           tabPress: () => {
-            // Refresh count when tab is pressed
             fetchInvitationCount();
           },
         }}
@@ -96,6 +97,14 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+  );
+}
+
+export default function TabLayout() {
+  return (
+    <ThemeProvider>
+      <TabsContent />
+    </ThemeProvider>
   );
 }
 

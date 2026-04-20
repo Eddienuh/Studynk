@@ -18,6 +18,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ReviewModal from '../../components/ReviewModal';
+import { useTheme } from '../../contexts/ThemeContext';
 import * as Contacts from 'expo-contacts';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
@@ -25,6 +26,7 @@ const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 export default function HomeScreen() {
   const { user, token } = useAuth();
   const router = useRouter();
+  const { theme } = useTheme();
   const [group, setGroup] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [streak, setStreak] = useState(0);
@@ -193,19 +195,19 @@ export default function HomeScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.bg }]}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       keyboardShouldPersistTaps="handled"
     >
       {/* Header with Search */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: theme.headerBg }]}>
         <View style={styles.headerTop}>
           <View style={styles.greetingCol}>
-            <Text style={styles.greeting}>Welcome back,</Text>
-            <Text style={styles.name}>{user?.name?.split(' ')[0]}!</Text>
+            <Text style={[styles.greeting, { color: theme.textSecondary }]}>Welcome back,</Text>
+            <Text style={[styles.name, { color: theme.accent }]}>{user?.name?.split(' ')[0]}!</Text>
           </View>
         </View>
-        <View style={styles.searchBarRow}>
+        <View style={[styles.searchBarRow, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}>
           <Ionicons name="search" size={18} color="#999" />
           <TextInput
             style={styles.searchInput}
@@ -256,13 +258,13 @@ export default function HomeScreen() {
       )}
 
       {/* Streak Card */}
-      <View style={styles.streakCard}>
-        <View style={styles.streakIcon}>
+      <View style={[styles.streakCard, { backgroundColor: theme.card }]}>
+        <View style={[styles.streakIcon, { backgroundColor: theme.mode === 'dark' ? '#3D2A1A' : '#FFF3E0' }]}>
           <Ionicons name="flame" size={32} color="#FF6B35" />
         </View>
         <View style={styles.streakContent}>
-          <Text style={styles.streakNumber}>{streak} day{streak !== 1 ? 's' : ''}</Text>
-          <Text style={styles.streakLabel}>Study Streak</Text>
+          <Text style={[styles.streakNumber, { color: theme.text }]}>{streak} day{streak !== 1 ? 's' : ''}</Text>
+          <Text style={[styles.streakLabel, { color: theme.textSecondary }]}>Study Streak</Text>
         </View>
         {group && (
           <TouchableOpacity style={styles.checkInButton} onPress={handleCheckIn}>
@@ -273,10 +275,10 @@ export default function HomeScreen() {
       </View>
 
       {/* Find Matches */}
-      <View style={styles.noGroupCard}>
-        <Ionicons name="search" size={48} color="#2DAFE3" />
-        <Text style={styles.noGroupTitle}>Find Your Study Group</Text>
-        <Text style={styles.noGroupText}>
+      <View style={[styles.noGroupCard, { backgroundColor: theme.card }]}>
+        <Ionicons name="search" size={48} color={theme.accent} />
+        <Text style={[styles.noGroupTitle, { color: theme.text }]}>Find Your Study Group</Text>
+        <Text style={[styles.noGroupText, { color: theme.textSecondary }]}>
           {group ? 'Search for more compatible students to grow your group' : 'Get matched with compatible students in your course'}
         </Text>
         <TouchableOpacity style={styles.findButton} onPress={handleFindMatch} disabled={loading}>
@@ -286,27 +288,27 @@ export default function HomeScreen() {
 
       {/* Quick Actions */}
       <View style={styles.quickActions}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Quick Actions</Text>
         <View style={styles.actionsGrid}>
-          <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/schedule')} activeOpacity={0.7}>
-            <Ionicons name="calendar" size={32} color="#2DAFE3" />
-            <Text style={styles.actionText}>Schedule</Text>
+          <TouchableOpacity style={[styles.actionCard, { backgroundColor: theme.card }]} onPress={() => router.push('/schedule')} activeOpacity={0.7}>
+            <Ionicons name="calendar" size={32} color={theme.accent} />
+            <Text style={[styles.actionText, { color: theme.text }]}>Schedule</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/(tabs)/groups')} activeOpacity={0.7}>
-            <Ionicons name="people" size={32} color="#2DAFE3" />
-            <Text style={styles.actionText}>My Group</Text>
+          <TouchableOpacity style={[styles.actionCard, { backgroundColor: theme.card }]} onPress={() => router.push('/(tabs)/groups')} activeOpacity={0.7}>
+            <Ionicons name="people" size={32} color={theme.accent} />
+            <Text style={[styles.actionText, { color: theme.text }]}>My Group</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/(tabs)/messages')} activeOpacity={0.7}>
-            <Ionicons name="chatbubbles" size={32} color="#2DAFE3" />
-            <Text style={styles.actionText}>Messages</Text>
+          <TouchableOpacity style={[styles.actionCard, { backgroundColor: theme.card }]} onPress={() => router.push('/(tabs)/messages')} activeOpacity={0.7}>
+            <Ionicons name="chatbubbles" size={32} color={theme.accent} />
+            <Text style={[styles.actionText, { color: theme.text }]}>Messages</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/study-spots')} activeOpacity={0.7}>
+          <TouchableOpacity style={[styles.actionCard, { backgroundColor: theme.card }]} onPress={() => router.push('/study-spots')} activeOpacity={0.7}>
             <Ionicons name="search" size={32} color="#FF9800" />
-            <Text style={styles.actionText}>Search &{'\n'}Share</Text>
+            <Text style={[styles.actionText, { color: theme.text }]}>Search &{'\n'}Share</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/(tabs)/profile')} activeOpacity={0.7}>
-            <Ionicons name="person" size={32} color="#2DAFE3" />
-            <Text style={styles.actionText}>Profile</Text>
+          <TouchableOpacity style={[styles.actionCard, { backgroundColor: theme.card }]} onPress={() => router.push('/(tabs)/profile')} activeOpacity={0.7}>
+            <Ionicons name="person" size={32} color={theme.accent} />
+            <Text style={[styles.actionText, { color: theme.text }]}>Profile</Text>
           </TouchableOpacity>
           {/* Invite Friends Card */}
           <TouchableOpacity style={[styles.actionCard, styles.inviteCard]} onPress={() => setShowInviteModal(true)} activeOpacity={0.7}>
