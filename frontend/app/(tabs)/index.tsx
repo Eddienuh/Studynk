@@ -275,7 +275,7 @@ export default function HomeScreen() {
       </View>
 
       {/* Find Matches - only visible if verified */}
-      {user?.is_verified === false ? (
+      {!user?.is_verified ? (
         <View style={[styles.verificationBanner, { backgroundColor: theme.card }]}>
           <View style={styles.verificationIconWrap}>
             <Ionicons name="shield-outline" size={40} color="#F59E0B" />
