@@ -1910,19 +1910,19 @@ async def create_checkout_session(request: Request):
     if not STRIPE_SECRET_KEY:
         raise HTTPException(status_code=500, detail="Stripe not configured")
 
-    # Plan configuration
+    # Plan configuration with live Stripe Product IDs
     PLAN_CONFIG = {
         "basic": {
-            "lookup_key": "studynk_basic_monthly",
+            "product_id": "prod_UJHDtNLIRlOECX",
             "product_name": "Studynk Basic",
-            "description": "Smart study group matching, group messaging, study streak tracking",
+            "description": "Unlimited invites, ad-free experience, verified student badge",
             "unit_amount": 299,  # £2.99
             "trial_days": 0,
         },
         "pro": {
-            "lookup_key": "studynk_pro_monthly",
+            "product_id": "prod_UJHECfOpyQ3DwQ",
             "product_name": "Studynk Pro",
-            "description": "Premium study group features: advanced matching, unlimited groups, priority support",
+            "description": "Priority Discovery Boost, everything in Basic, boosted profile status",
             "unit_amount": 499,  # £4.99
             "trial_days": 30,
         },
@@ -1945,9 +1945,9 @@ async def create_checkout_session(request: Request):
                 {"$set": {"stripe_customer_id": stripe_customer_id}}
             )
 
-        # Find existing price or create new product + price
+        # Find existing price on the live product, or create one
         prices = stripe.Price.list(
-            lookup_keys=[config["lookup_key"]],
+            product=config["product_id"],
             active=True,
             limit=1,
         )
@@ -1955,17 +1955,11 @@ async def create_checkout_session(request: Request):
         if prices.data:
             price_id = prices.data[0].id
         else:
-            # Create product and price
-            product = stripe.Product.create(
-                name=config["product_name"],
-                description=config["description"],
-            )
             price = stripe.Price.create(
-                product=product.id,
+                product=config["product_id"],
                 unit_amount=config["unit_amount"],
                 currency="gbp",
                 recurring={"interval": "month"},
-                lookup_key=config["lookup_key"],
             )
             price_id = price.id
 
