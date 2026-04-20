@@ -14,7 +14,6 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { Head } from 'expo-router';
 import {
   useFonts,
   Inter_400Regular,
@@ -112,11 +111,6 @@ export default function LandingPage() {
 
   return (
     <ScrollView style={styles.page} bounces={false} showsVerticalScrollIndicator={false}>
-      <Head>
-        <title>Studynk — Find Your Perfect Study Partner</title>
-        <meta name="description" content="The verified way to find your study squad. Match with compatible students in your course." />
-        <link rel="canonical" href="https://studynk.co.uk" />
-      </Head>
       {/* ───── HERO ───── */}
       <LinearGradient
         colors={['#2563EB', '#60A5FA']}
