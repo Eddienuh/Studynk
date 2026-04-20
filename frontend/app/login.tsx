@@ -103,13 +103,20 @@ export default function LoginScreen() {
       return;
     }
 
+    const emailLower = email.trim().toLowerCase();
+    const isAdmin = emailLower === 'admin@studynk.co.uk';
+    if (isAdmin) {
+      console.log('[ADMIN] Admin email detected on login — skipping all domain checks');
+    }
+
     setLoading(true);
     try {
+      console.log('[LOGIN] Sending login request for:', emailLower);
       const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: email.trim().toLowerCase(),
+          email: emailLower,
           password,
         }),
       });
@@ -117,14 +124,20 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (!response.ok) {
+        console.log('[LOGIN] Login failed:', data.detail);
         setError(data.detail || 'Login failed');
         return;
       }
 
+      console.log('[LOGIN] Success — is_verified:', data.user.is_verified, 'onboarding:', data.user.onboarding_completed, 'email:', data.user.email);
       await login(data.user, data.token);
 
       // Route based on verification and onboarding status
-      if (!data.user.is_verified && data.user.email !== 'admin@studynk.co.uk') {
+      if (isAdmin) {
+        console.log('[ADMIN] Admin bypass — going straight to dashboard');
+        router.replace('/(tabs)');
+      } else if (!data.user.is_verified) {
+        console.log('[LOGIN] User not verified — routing to verify-account');
         router.replace('/verify-account');
       } else if (data.user.onboarding_completed) {
         router.replace('/(tabs)');

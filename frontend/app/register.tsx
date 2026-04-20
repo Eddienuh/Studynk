@@ -41,9 +41,48 @@ export default function RegisterScreen() {
       return;
     }
 
-    // University email restriction with tightened domain validation
     const emailLower = email.trim().toLowerCase();
+
+    // ===== ADMIN BYPASS — checked FIRST before any domain/OTP logic =====
+    const isAdmin = emailLower === 'admin@studynk.co.uk';
+    if (isAdmin) {
+      console.log('[ADMIN] Admin email detected — bypassing domain check, routing to login');
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters');
+        return;
+      }
+      // Admin uses the LOGIN endpoint (auto-creates account)
+      setLoading(true);
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailLower, password }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          console.log('[ADMIN] Login failed:', data.detail);
+          setError(data.detail || 'Admin login failed');
+          return;
+        }
+        console.log('[ADMIN] Login success — is_verified:', data.user.is_verified, 'onboarding:', data.user.onboarding_completed);
+        await login(data.user, data.token);
+        router.replace('/(tabs)');
+        return;
+      } catch (err) {
+        console.log('[ADMIN] Network error:', err);
+        setError('Network error. Please try again.');
+        return;
+      } finally {
+        setLoading(false);
+      }
+    }
+    // ===== END ADMIN BYPASS =====
+
+    // University email restriction with tightened domain validation
+    console.log('[REGISTER] Running domain check for:', emailLower);
     if (!emailLower.endsWith('.ac.uk') && !emailLower.endsWith('.edu')) {
+      console.log('[REGISTER] Domain check FAILED — not .ac.uk or .edu');
       setError('Please use your University email to ensure community safety.');
       return;
     }
@@ -55,9 +94,11 @@ export default function RegisterScreen() {
       domain.startsWith(prefix + '.') || domain === prefix + '.ac.uk' || domain === prefix + '.edu'
     );
     if (isDomainBlocked) {
+      console.log('[REGISTER] Blocked personal domain:', domain);
       setError('Personal email domains are not accepted. Please use your official university email.');
       return;
     }
+    console.log('[REGISTER] Domain check PASSED for:', emailLower);
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters');
@@ -209,9 +250,9 @@ export default function RegisterScreen() {
             </View>
 
             <TouchableOpacity
-              style={[styles.registerButton, (!gdprConsent || loading) && styles.registerButtonDisabled]}
+              style={[styles.registerButton, loading && styles.registerButtonDisabled]}
               onPress={handleRegister}
-              disabled={loading || !gdprConsent}
+              disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color="#FFF" />

@@ -458,10 +458,12 @@ async def register(request: Request):
     if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
         raise HTTPException(status_code=400, detail="Invalid email format")
 
-    # Tightened domain validation
-    is_valid, error_msg = validate_university_email(email)
-    if not is_valid:
-        raise HTTPException(status_code=400, detail=error_msg)
+    # Admin bypass — skip domain validation for admin email
+    if email != ADMIN_EMAIL.lower():
+        # Tightened domain validation
+        is_valid, error_msg = validate_university_email(email)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
 
     # Check if user already exists
     existing = await db.users.find_one({"email": email})
