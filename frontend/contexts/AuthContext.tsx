@@ -19,6 +19,7 @@ interface User {
   group_id?: string;
   subscription_tier?: string;
   referral_code?: string;
+  is_verified?: boolean;
 }
 
 interface AuthContextType {

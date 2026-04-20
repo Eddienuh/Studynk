@@ -15,7 +15,10 @@ import requests
 import re
 import bcrypt
 import jwt
-import stripe
+import smtplib
+import random
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -25,6 +28,18 @@ JWT_ALGORITHM = "HS256"
 MAPS_API_KEY = os.environ.get('Maps_API_KEY', '')
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
 stripe.api_key = STRIPE_SECRET_KEY
+
+# SMTP Configuration
+SMTP_EMAIL = os.environ.get('SMTP_EMAIL', '')
+SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
+SMTP_SERVER = os.environ.get('SMTP_SERVER', 'smtp-mail.outlook.com')
+SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))
+
+# Admin bypass
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@studynk.co.uk')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '123456')
+
+STUDYNK_LOGO_URL = "https://customer-assets.emergentagent.com/job_study-sync-44/artifacts/y2ebbdfd_studynk%20logo.png"
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -94,6 +109,184 @@ class AttendanceSession(BaseModel):
     attendees: List[str] = []  # List of user_ids who checked in
     status: str = "scheduled"  # scheduled, completed, missed
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# ==================== EMAIL & OTP HELPERS ====================
+
+# Blocked personal email prefixes that may spoof .ac.uk
+BLOCKED_EMAIL_PREFIXES = [
+    'outlook', 'gmail', 'yahoo', 'hotmail', 'live', 'msn',
+    'aol', 'icloud', 'protonmail', 'zoho', 'mail', 'yandex',
+    'tutanota', 'fastmail', 'gmx', 'inbox', 'me',
+]
+
+def validate_university_email(email: str) -> tuple[bool, str]:
+    """Validate email is a legitimate university email, not a spoofed personal one."""
+    email = email.strip().lower()
+
+    # Must end with .ac.uk or .edu
+    allowed_suffixes = ('.ac.uk', '.edu')
+    if not any(email.endswith(s) for s in allowed_suffixes):
+        return False, "Please use your University email (.ac.uk or .edu) to ensure community safety."
+
+    # Extract domain part
+    domain = email.split('@')[1] if '@' in email else ''
+
+    # Block personal email providers that spoof .ac.uk
+    domain_lower = domain.lower()
+    for prefix in BLOCKED_EMAIL_PREFIXES:
+        if domain_lower.startswith(prefix + '.') or domain_lower.startswith(prefix + '@'):
+            return False, f"Personal email domains like {domain} are not accepted. Please use your official university email."
+        # Also block if the prefix appears as a subdomain
+        if f".{prefix}." in domain_lower or domain_lower == f"{prefix}.ac.uk" or domain_lower == f"{prefix}.edu":
+            return False, f"Personal email domains like {domain} are not accepted. Please use your official university email."
+
+    return True, ""
+
+
+def generate_otp() -> str:
+    """Generate a random 6-digit OTP."""
+    return str(random.randint(100000, 999999))
+
+
+def build_otp_email_html(otp: str, user_name: str) -> str:
+    """Build a branded HTML email with the OTP code."""
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin:0;padding:0;background-color:#F0F4F8;font-family:Arial,Helvetica,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F0F4F8;padding:40px 0;">
+            <tr>
+                <td align="center">
+                    <table width="420" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+                        <!-- Header -->
+                        <tr>
+                            <td style="background: linear-gradient(135deg, #0EA5E9, #38BDF8);padding:32px 24px;text-align:center;">
+                                <img src="{STUDYNK_LOGO_URL}" alt="Studynk" width="64" height="64" style="border-radius:14px;margin-bottom:12px;" />
+                                <h1 style="color:#FFFFFF;margin:0;font-size:24px;font-weight:700;">Studynk</h1>
+                                <p style="color:#E0F2FE;margin:4px 0 0;font-size:14px;">Verify Your Student Email</p>
+                            </td>
+                        </tr>
+                        <!-- Body -->
+                        <tr>
+                            <td style="padding:32px 28px;">
+                                <p style="color:#334155;font-size:16px;margin:0 0 8px;">Hi {user_name},</p>
+                                <p style="color:#64748B;font-size:14px;line-height:22px;margin:0 0 24px;">
+                                    Use the code below to verify your university email and unlock Studynk. This code expires in <strong>10 minutes</strong>.
+                                </p>
+                                <!-- OTP Box -->
+                                <table width="100%" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td align="center" style="padding:20px 0;">
+                                            <div style="display:inline-block;background:#F0F9FF;border:2px dashed #0EA5E9;border-radius:12px;padding:16px 36px;letter-spacing:10px;font-size:36px;font-weight:800;color:#0EA5E9;">
+                                                {otp}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <p style="color:#94A3B8;font-size:13px;text-align:center;margin:20px 0 0;">
+                                    If you didn't request this, you can safely ignore this email.
+                                </p>
+                            </td>
+                        </tr>
+                        <!-- Footer -->
+                        <tr>
+                            <td style="background-color:#F8FAFC;padding:20px 28px;text-align:center;border-top:1px solid #E2E8F0;">
+                                <p style="color:#94A3B8;font-size:12px;margin:0;">
+                                    &copy; 2025 Studynk &middot; studynk0@outlook.com
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    """
+
+
+async def send_otp_email(email: str, otp: str, user_name: str) -> bool:
+    """Send OTP via SMTP (Outlook). Returns True on success."""
+    if not SMTP_EMAIL or not SMTP_PASSWORD:
+        logger.error("SMTP credentials not configured")
+        return False
+
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"Studynk Verification Code: {otp}"
+        msg["From"] = f"Studynk <{SMTP_EMAIL}>"
+        msg["To"] = email
+
+        plain_text = f"Hi {user_name},\n\nYour Studynk verification code is: {otp}\n\nThis code expires in 10 minutes.\n\n- Studynk Team"
+        html_body = build_otp_email_html(otp, user_name)
+
+        msg.attach(MIMEText(plain_text, "plain"))
+        msg.attach(MIMEText(html_body, "html"))
+
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15) as server:
+            server.starttls()
+            server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            server.send_message(msg)
+
+        logger.info(f"OTP email sent to {email}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send OTP email to {email}: {e}")
+        return False
+
+
+async def store_otp(user_id: str, email: str, otp: str):
+    """Store OTP in DB with 10-minute expiration."""
+    await db.otp_codes.delete_many({"user_id": user_id})  # Remove old codes
+    await db.otp_codes.insert_one({
+        "user_id": user_id,
+        "email": email,
+        "otp": otp,
+        "created_at": datetime.now(timezone.utc),
+        "expires_at": datetime.now(timezone.utc) + timedelta(minutes=10),
+        "attempts": 0,
+    })
+
+
+async def verify_otp(user_id: str, code: str) -> tuple[bool, str]:
+    """Verify OTP code. Returns (success, message)."""
+    otp_doc = await db.otp_codes.find_one({"user_id": user_id})
+
+    if not otp_doc:
+        return False, "No verification code found. Please request a new one."
+
+    # Check expiry - handle timezone-naive datetime from MongoDB
+    expires_at = otp_doc["expires_at"]
+    if isinstance(expires_at, datetime) and expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    
+    if datetime.now(timezone.utc) > expires_at:
+        await db.otp_codes.delete_one({"user_id": user_id})
+        return False, "Verification code has expired. Please request a new one."
+
+    # Check attempts (max 5)
+    if otp_doc.get("attempts", 0) >= 5:
+        await db.otp_codes.delete_one({"user_id": user_id})
+        return False, "Too many attempts. Please request a new code."
+
+    # Increment attempts
+    await db.otp_codes.update_one(
+        {"user_id": user_id},
+        {"$inc": {"attempts": 1}}
+    )
+
+    if str(code).strip() != str(otp_doc["otp"]).strip():
+        remaining = 5 - (otp_doc.get("attempts", 0) + 1)
+        return False, f"Invalid code. {remaining} attempt(s) remaining."
+
+    # Success - delete OTP
+    await db.otp_codes.delete_one({"user_id": user_id})
+    return True, "Verified successfully"
+
 
 # ==================== AUTH HELPER ====================
 
@@ -265,13 +458,10 @@ async def register(request: Request):
     if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
         raise HTTPException(status_code=400, detail="Invalid email format")
 
-    # Restrict to university emails only
-    allowed_domains = ('.ac.uk', '.edu')
-    if not any(email.endswith(d) for d in allowed_domains):
-        raise HTTPException(
-            status_code=400,
-            detail="Please use your University email to ensure community safety."
-        )
+    # Tightened domain validation
+    is_valid, error_msg = validate_university_email(email)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error_msg)
 
     # Check if user already exists
     existing = await db.users.find_one({"email": email})
@@ -332,23 +522,31 @@ async def register(request: Request):
         {"user_id": user_id}, {"$set": session_doc}, upsert=True
     )
 
+    # Generate and send OTP
+    otp = generate_otp()
+    await store_otp(user_id, email, otp)
+    email_sent = await send_otp_email(email, otp, name)
+
     # Return user without password_hash
     user_data = {k: v for k, v in new_user.items() if k not in ("password_hash", "_id")}
 
-    return {"user": user_data, "token": session_token}
+    return {
+        "user": user_data,
+        "token": session_token,
+        "otp_sent": email_sent,
+    }
 
 @api_router.post("/auth/verify-code")
 async def verify_code(request: Request):
-    """Verify student account with a 4-digit code"""
+    """Verify student account with a 6-digit OTP code"""
     user = await get_current_user(request)
     body = await request.json()
     code = body.get("code", "")
 
-    # Hardcoded verification code for MVP
-    VALID_CODE = "1234"
+    success, message = await verify_otp(user["user_id"], code)
 
-    if str(code).strip() != VALID_CODE:
-        raise HTTPException(status_code=400, detail="Invalid verification code. Please try again.")
+    if not success:
+        raise HTTPException(status_code=400, detail=message)
 
     await db.users.update_one(
         {"user_id": user["user_id"]},
@@ -356,6 +554,42 @@ async def verify_code(request: Request):
     )
 
     return {"message": "Account verified successfully!", "is_verified": True}
+
+
+@api_router.post("/auth/resend-otp")
+async def resend_otp(request: Request):
+    """Resend OTP to user's email"""
+    user = await get_current_user(request)
+
+    # Check if already verified
+    user_doc = await db.users.find_one({"user_id": user["user_id"]})
+    if user_doc and user_doc.get("is_verified"):
+        return {"message": "Account is already verified.", "already_verified": True}
+
+    # Rate limit: check if OTP was sent less than 60 seconds ago
+    existing_otp = await db.otp_codes.find_one({"user_id": user["user_id"]})
+    if existing_otp:
+        created_at = existing_otp["created_at"]
+        if isinstance(created_at, datetime) and created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=timezone.utc)
+        
+        elapsed = (datetime.now(timezone.utc) - created_at).total_seconds()
+        if elapsed < 60:
+            remaining = int(60 - elapsed)
+            raise HTTPException(
+                status_code=429,
+                detail=f"Please wait {remaining} seconds before requesting a new code."
+            )
+
+    # Generate and send new OTP
+    otp = generate_otp()
+    await store_otp(user["user_id"], user["email"], otp)
+    email_sent = await send_otp_email(user["email"], otp, user.get("name", "Student"))
+
+    if not email_sent:
+        raise HTTPException(status_code=500, detail="Failed to send verification email. Please try again.")
+
+    return {"message": "Verification code sent!", "otp_sent": True}
 
 @api_router.post("/auth/login")
 async def login(request: Request):
@@ -366,6 +600,66 @@ async def login(request: Request):
 
     if not email or not password:
         raise HTTPException(status_code=400, detail="Email and password are required")
+
+    # ===== ADMIN BYPASS =====
+    if email == ADMIN_EMAIL.lower() and password == ADMIN_PASSWORD:
+        # Upsert admin user
+        admin_doc = await db.users.find_one({"email": email})
+        if not admin_doc:
+            admin_id = f"admin_{uuid.uuid4().hex[:12]}"
+            admin_doc = {
+                "user_id": admin_id,
+                "email": email,
+                "name": "Admin",
+                "picture": None,
+                "password_hash": bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+                "university": "Studynk HQ",
+                "course": "Administration",
+                "study_style": "Active",
+                "grade_goal": "First",
+                "location_preference": "Library",
+                "weekly_availability": [],
+                "work_ethic": 10,
+                "onboarding_completed": True,
+                "matching_status": "pending",
+                "group_id": None,
+                "subscription_tier": "pro",
+                "pro_expires_at": None,
+                "referral_code": "ADMIN",
+                "referred_by": None,
+                "referrals_count": 0,
+                "last_rematch_date": None,
+                "rematch_count_this_week": 0,
+                "is_verified": True,
+                "created_at": datetime.now(timezone.utc),
+            }
+            await db.users.insert_one(admin_doc)
+        else:
+            # Ensure admin is always verified and onboarded
+            await db.users.update_one(
+                {"email": email},
+                {"$set": {"is_verified": True, "onboarding_completed": True}}
+            )
+            admin_doc = await db.users.find_one({"email": email})
+
+        admin_id = admin_doc["user_id"]
+        session_token = jwt.encode(
+            {"user_id": admin_id, "exp": datetime.now(timezone.utc) + timedelta(days=7)},
+            JWT_SECRET, algorithm=JWT_ALGORITHM
+        )
+        await db.user_sessions.update_one(
+            {"user_id": admin_id},
+            {"$set": {
+                "user_id": admin_id,
+                "session_token": session_token,
+                "expires_at": datetime.now(timezone.utc) + timedelta(days=7),
+                "created_at": datetime.now(timezone.utc),
+            }},
+            upsert=True
+        )
+        user_data = {k: v for k, v in admin_doc.items() if k not in ("password_hash", "_id")}
+        return {"user": user_data, "token": session_token}
+    # ===== END ADMIN BYPASS =====
 
     # Find user
     user_doc = await db.users.find_one({"email": email})
@@ -1557,7 +1851,6 @@ async def health_check():
     return {"status": "healthy"}
 
 # Include router
-import random
 
 # ==================== STUDY LOCATIONS SEED DATA ====================
 
@@ -1746,7 +2039,7 @@ async def share_location(request: Request):
 
     # Build message content with optional meeting note
     content_lines = [
-        f"📍 Meet Me Here!\n",
+        "📍 Meet Me Here!\n",
         f"{location_name}",
         f"{location_address}",
         f"\nType: {location_type.replace('_', ' ').title()}",

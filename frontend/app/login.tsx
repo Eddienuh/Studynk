@@ -123,7 +123,10 @@ export default function LoginScreen() {
 
       await login(data.user, data.token);
 
-      if (data.user.onboarding_completed) {
+      // Route based on verification and onboarding status
+      if (!data.user.is_verified && data.user.email !== 'admin@studynk.co.uk') {
+        router.replace('/verify-account');
+      } else if (data.user.onboarding_completed) {
         router.replace('/(tabs)');
       } else {
         router.replace('/onboarding');

@@ -274,17 +274,33 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {/* Find Matches */}
-      <View style={[styles.noGroupCard, { backgroundColor: theme.card }]}>
-        <Ionicons name="search" size={48} color={theme.accent} />
-        <Text style={[styles.noGroupTitle, { color: theme.text }]}>Find Your Study Group</Text>
-        <Text style={[styles.noGroupText, { color: theme.textSecondary }]}>
-          {group ? 'Search for more compatible students to grow your group' : 'Get matched with compatible students in your course'}
-        </Text>
-        <TouchableOpacity style={styles.findButton} onPress={handleFindMatch} disabled={loading}>
-          <Text style={styles.findButtonText}>{loading ? 'Searching...' : 'Find Matches'}</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Find Matches - only visible if verified */}
+      {user?.is_verified === false ? (
+        <View style={[styles.verificationBanner, { backgroundColor: theme.card }]}>
+          <View style={styles.verificationIconWrap}>
+            <Ionicons name="shield-outline" size={40} color="#F59E0B" />
+          </View>
+          <Text style={[styles.noGroupTitle, { color: theme.text }]}>Verify Your Email First</Text>
+          <Text style={[styles.noGroupText, { color: theme.textSecondary }]}>
+            You need to verify your university email before you can find and join study groups.
+          </Text>
+          <TouchableOpacity style={styles.verifyBannerBtn} onPress={() => router.push('/verify-account')}>
+            <Ionicons name="mail-outline" size={18} color="#FFF" />
+            <Text style={styles.verifyBannerBtnText}>Verify Now</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={[styles.noGroupCard, { backgroundColor: theme.card }]}>
+          <Ionicons name="search" size={48} color={theme.accent} />
+          <Text style={[styles.noGroupTitle, { color: theme.text }]}>Find Your Study Group</Text>
+          <Text style={[styles.noGroupText, { color: theme.textSecondary }]}>
+            {group ? 'Search for more compatible students to grow your group' : 'Get matched with compatible students in your course'}
+          </Text>
+          <TouchableOpacity style={styles.findButton} onPress={handleFindMatch} disabled={loading}>
+            <Text style={styles.findButtonText}>{loading ? 'Searching...' : 'Find Matches'}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Quick Actions */}
       <View style={styles.quickActions}>
@@ -561,4 +577,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
   },
   noContactsText: { textAlign: 'center', color: '#999', fontSize: 14, padding: 16 },
+
+  /* ── Verification Banner ── */
+  verificationBanner: {
+    backgroundColor: '#FFF', margin: 16, marginTop: 0, padding: 32, borderRadius: 16, alignItems: 'center',
+    elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4,
+    borderWidth: 1.5, borderColor: '#FDE68A',
+  },
+  verificationIconWrap: {
+    width: 72, height: 72, borderRadius: 36, backgroundColor: '#FFFBEB',
+    justifyContent: 'center', alignItems: 'center', marginBottom: 8,
+  },
+  verifyBannerBtn: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#F59E0B',
+    paddingVertical: 14, paddingHorizontal: 28, borderRadius: 24,
+  },
+  verifyBannerBtnText: { color: '#FFF', fontSize: 16, fontWeight: '600', marginLeft: 8 },
 });

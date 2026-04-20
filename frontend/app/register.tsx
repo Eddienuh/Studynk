@@ -41,10 +41,21 @@ export default function RegisterScreen() {
       return;
     }
 
-    // University email restriction
+    // University email restriction with tightened domain validation
     const emailLower = email.trim().toLowerCase();
     if (!emailLower.endsWith('.ac.uk') && !emailLower.endsWith('.edu')) {
       setError('Please use your University email to ensure community safety.');
+      return;
+    }
+
+    // Block personal email domains spoofing .ac.uk
+    const domain = emailLower.split('@')[1] || '';
+    const blockedPrefixes = ['outlook', 'gmail', 'yahoo', 'hotmail', 'live', 'msn', 'aol', 'icloud', 'protonmail', 'zoho', 'mail', 'yandex', 'tutanota', 'fastmail', 'gmx', 'inbox', 'me'];
+    const isDomainBlocked = blockedPrefixes.some(prefix =>
+      domain.startsWith(prefix + '.') || domain === prefix + '.ac.uk' || domain === prefix + '.edu'
+    );
+    if (isDomainBlocked) {
+      setError('Personal email domains are not accepted. Please use your official university email.');
       return;
     }
 
