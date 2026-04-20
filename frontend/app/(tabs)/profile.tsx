@@ -334,34 +334,34 @@ export default function ProfileScreen() {
       <View style={[styles.section, { backgroundColor: theme.bg }]}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('profile.settings.title')}</Text>
         <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
-          <TouchableOpacity style={styles.settingsItem} onPress={handleEditProfile}>
+          <TouchableOpacity style={[styles.settingsItem, { borderBottomColor: theme.divider }]} onPress={handleEditProfile}>
             <Ionicons name="create-outline" size={24} color="#2DAFE3" />
-            <Text style={styles.settingsText}>{t('profile.settings.editProfile')}</Text>
-            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            <Text style={[styles.settingsText, { color: theme.text }]}>{t('profile.settings.editProfile')}</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.settingsItem} onPress={showPhotoOptions}>
+          <TouchableOpacity style={[styles.settingsItem, { borderBottomColor: theme.divider }]} onPress={showPhotoOptions}>
             <Ionicons name="camera-outline" size={24} color="#2DAFE3" />
-            <Text style={styles.settingsText}>Change Profile Photo</Text>
-            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            <Text style={[styles.settingsText, { color: theme.text }]}>Change Profile Photo</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.settingsItem} onPress={() => router.push('/privacy')}>
+          <TouchableOpacity style={[styles.settingsItem, { borderBottomColor: theme.divider }]} onPress={() => router.push('/privacy')}>
             <Ionicons name="shield-checkmark-outline" size={24} color="#2DAFE3" />
-            <Text style={styles.settingsText}>Privacy Policy</Text>
-            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            <Text style={[styles.settingsText, { color: theme.text }]}>Privacy Policy</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.settingsItem} onPress={() => router.push('/terms')}>
+          <TouchableOpacity style={[styles.settingsItem, { borderBottomColor: theme.divider }]} onPress={() => router.push('/terms')}>
             <Ionicons name="document-text-outline" size={24} color="#2DAFE3" />
-            <Text style={styles.settingsText}>Terms of Service</Text>
-            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            <Text style={[styles.settingsText, { color: theme.text }]}>Terms of Service</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.settingsItem}>
+          <TouchableOpacity style={[styles.settingsItem, { borderBottomWidth: 0 }]}>
             <Ionicons name="information-circle-outline" size={24} color="#2DAFE3" />
-            <Text style={styles.settingsText}>{t('profile.settings.about')}</Text>
-            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            <Text style={[styles.settingsText, { color: theme.text }]}>{t('profile.settings.about')}</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
           </TouchableOpacity>
         </View>
       </View>
@@ -382,7 +382,7 @@ export default function ProfileScreen() {
       </View>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Ionicons name="log-out-outline" size={20} color="#E53935" />
+        <Ionicons name="log-out-outline" size={18} color="#FFF" />
         <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
 
@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#F0F0F0',
   },
   infoContent: {
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#F0F0F0',
   },
   settingsText: {
@@ -546,17 +546,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: '#E53935',
     marginHorizontal: 16,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#E53935',
+    paddingVertical: 14,
+    borderRadius: 10,
+    minHeight: 48,
   },
   logoutText: {
+    color: '#FFF',
     fontSize: 16,
     fontWeight: '600',
-    color: '#E53935',
     marginLeft: 8,
   },
   deleteButton: {
@@ -578,7 +577,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#F0F0F0',
   },
   legalText: {
