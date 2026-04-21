@@ -17,7 +17,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+
+// Log the backend URL on load for debugging
+if (typeof console !== 'undefined') {
+  console.log('[LOGIN_SCREEN] BACKEND_URL:', BACKEND_URL || 'NOT SET');
+}
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -141,8 +146,13 @@ export default function LoginScreen() {
       } else {
         router.replace('/onboarding');
       }
-    } catch (err) {
-      setError('Network error. Please try again.');
+    } catch (err: any) {
+      console.log('[LOGIN] Catch error:', err?.message || err, 'BACKEND_URL:', BACKEND_URL);
+      if (!BACKEND_URL) {
+        setError('Backend URL not configured. Please check environment settings.');
+      } else {
+        setError(`Connection failed. Please check your internet and try again. (${err?.message || 'Network error'})`);
+      }
     } finally {
       setLoading(false);
     }

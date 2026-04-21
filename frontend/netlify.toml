@@ -3,7 +3,7 @@
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "20.16.0"
+  NODE_VERSION = "20.19.4"
   EXPO_PUBLIC_BACKEND_URL = "https://study-sync-44.preview.emergentagent.com"
   EXPO_PUBLIC_GOOGLE_MAPS_API_KEY = "AIzaSyD1_YjcVPyv5kjA9o3HIdRS1q5CnglEorI"
   EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY = "pk_test_51TJtg1RvsCE9rmrBjikaREJZN15MYqOEhmLEFPL0D1GPusyWKKr7VryXL3UBsuNoYTiDj6JtjWq04JcbZm3RmAdO00zYE0nW4O"
