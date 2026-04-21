@@ -17,6 +17,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { crossAlert, crossActionSheet } from '../../utils/crossAlert';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -51,7 +52,7 @@ export default function ProfileScreen() {
   }, []);
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
+    crossAlert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Logout',
@@ -65,7 +66,7 @@ export default function ProfileScreen() {
   };
 
   const handleDeleteAccount = () => {
-    Alert.alert(
+    crossAlert(
       'Delete Account',
       'This will permanently delete your account and all your data. This action cannot be undone.',
       [
@@ -74,8 +75,7 @@ export default function ProfileScreen() {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            // Second confirmation
-            Alert.alert(
+            crossAlert(
               'Are you absolutely sure?',
               'All your study groups, messages, and profile data will be permanently erased.',
               [
@@ -116,10 +116,9 @@ export default function ProfileScreen() {
   };
 
   const handlePickPhoto = async () => {
-    // Request permission
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Please allow access to your photo library to change your profile picture.');
+      crossAlert('Permission Required', 'Please allow access to your photo library to change your profile picture.');
       return;
     }
 
@@ -139,7 +138,7 @@ export default function ProfileScreen() {
   const handleTakePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Please allow camera access to take a profile picture.');
+      crossAlert('Permission Required', 'Please allow camera access to take a profile picture.');
       return;
     }
 
@@ -170,20 +169,20 @@ export default function ProfileScreen() {
 
       if (response.ok) {
         await refreshUser();
-        Alert.alert('Success', 'Profile photo updated!');
+        crossAlert('Success', 'Profile photo updated!');
       } else {
         const data = await response.json();
-        Alert.alert('Error', data.detail || 'Failed to upload photo');
+        crossAlert('Error', data.detail || 'Failed to upload photo');
       }
     } catch (error) {
-      Alert.alert('Error', 'Network error. Please try again.');
+      crossAlert('Error', 'Network error. Please try again.');
     } finally {
       setUploading(false);
     }
   };
 
   const showPhotoOptions = () => {
-    Alert.alert('Profile Photo', 'Choose how to update your photo', [
+    crossActionSheet('Profile Photo', 'Choose how to update your photo', [
       { text: 'Take Photo', onPress: handleTakePhoto },
       { text: 'Choose from Library', onPress: handlePickPhoto },
       ...(user?.profile_photo ? [{ text: 'Remove Photo', style: 'destructive' as const, onPress: removePhoto }] : []),
