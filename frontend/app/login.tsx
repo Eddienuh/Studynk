@@ -136,9 +136,6 @@ export default function LoginScreen() {
       if (isAdmin) {
         console.log('[ADMIN] Admin bypass — going straight to dashboard');
         router.replace('/(tabs)');
-      } else if (!data.user.is_verified) {
-        console.log('[LOGIN] User not verified — routing to verify-account');
-        router.replace('/verify-account');
       } else if (data.user.onboarding_completed) {
         router.replace('/(tabs)');
       } else {

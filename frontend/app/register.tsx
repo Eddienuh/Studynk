@@ -112,7 +112,13 @@ export default function RegisterScreen() {
       }
 
       await login(data.user, data.token);
-      router.replace('/verify-account');
+
+      // If OTP was sent, go to verification. Otherwise skip to onboarding.
+      if (data.otp_sent) {
+        router.replace('/verify-account');
+      } else {
+        router.replace('/onboarding');
+      }
     } catch (err) {
       setError('Network error. Please try again.');
     } finally {
