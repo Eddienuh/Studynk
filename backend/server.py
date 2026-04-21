@@ -42,9 +42,11 @@ ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'BetaPass123!')
 STUDYNK_LOGO_URL = "https://customer-assets.emergentagent.com/job_study-sync-44/artifacts/y2ebbdfd_studynk%20logo.png"
 
 # MongoDB connection
-mongo_url = os.environ['MONGO_URL']
+mongo_url = os.environ.get('MONGO_URL', os.environ.get('MONGODB_URI', ''))
+if not mongo_url:
+    raise RuntimeError("MONGO_URL environment variable is required")
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[os.environ.get('DB_NAME', 'studynk_db')]
 
 # Create the main app
 app = FastAPI()
