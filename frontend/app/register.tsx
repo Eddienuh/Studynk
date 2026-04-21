@@ -44,14 +44,13 @@ export default function RegisterScreen() {
     const emailLower = email.trim().toLowerCase();
 
     // ===== ADMIN BYPASS — checked FIRST before any domain/OTP logic =====
-    const isAdmin = emailLower === 'admin@studynk.co.uk';
+    const isAdmin = emailLower === 'admin@studynk.com';
     if (isAdmin) {
-      console.log('[ADMIN] Admin email detected — bypassing domain check, routing to login');
+      console.log('[ADMIN] Admin email detected — bypassing checks, routing to login');
       if (password.length < 6) {
         setError('Password must be at least 6 characters');
         return;
       }
-      // Admin uses the LOGIN endpoint (auto-creates account)
       setLoading(true);
       try {
         const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
@@ -65,7 +64,7 @@ export default function RegisterScreen() {
           setError(data.detail || 'Admin login failed');
           return;
         }
-        console.log('[ADMIN] Login success — is_verified:', data.user.is_verified, 'onboarding:', data.user.onboarding_completed);
+        console.log('[ADMIN] Login success');
         await login(data.user, data.token);
         router.replace('/(tabs)');
         return;
@@ -78,27 +77,6 @@ export default function RegisterScreen() {
       }
     }
     // ===== END ADMIN BYPASS =====
-
-    // University email restriction with tightened domain validation
-    console.log('[REGISTER] Running domain check for:', emailLower);
-    if (!emailLower.endsWith('.ac.uk') && !emailLower.endsWith('.edu')) {
-      console.log('[REGISTER] Domain check FAILED — not .ac.uk or .edu');
-      setError('Please use your University email to ensure community safety.');
-      return;
-    }
-
-    // Block personal email domains spoofing .ac.uk
-    const domain = emailLower.split('@')[1] || '';
-    const blockedPrefixes = ['outlook', 'gmail', 'yahoo', 'hotmail', 'live', 'msn', 'aol', 'icloud', 'protonmail', 'zoho', 'mail', 'yandex', 'tutanota', 'fastmail', 'gmx', 'inbox', 'me'];
-    const isDomainBlocked = blockedPrefixes.some(prefix =>
-      domain.startsWith(prefix + '.') || domain === prefix + '.ac.uk' || domain === prefix + '.edu'
-    );
-    if (isDomainBlocked) {
-      console.log('[REGISTER] Blocked personal domain:', domain);
-      setError('Personal email domains are not accepted. Please use your official university email.');
-      return;
-    }
-    console.log('[REGISTER] Domain check PASSED for:', emailLower);
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters');

@@ -104,7 +104,7 @@ export default function LoginScreen() {
     }
 
     const emailLower = email.trim().toLowerCase();
-    const isAdmin = emailLower === 'admin@studynk.co.uk';
+    const isAdmin = emailLower === 'admin@studynk.com';
     if (isAdmin) {
       console.log('[ADMIN] Admin email detected on login — skipping all domain checks');
     }

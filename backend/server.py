@@ -36,8 +36,8 @@ SMTP_SERVER = os.environ.get('SMTP_SERVER', 'smtp-mail.outlook.com')
 SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))
 
 # Admin bypass
-ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@studynk.co.uk')
-ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '123456')
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@studynk.com')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'BetaPass123!')
 
 STUDYNK_LOGO_URL = "https://customer-assets.emergentagent.com/job_study-sync-44/artifacts/y2ebbdfd_studynk%20logo.png"
 
@@ -110,36 +110,13 @@ class AttendanceSession(BaseModel):
     status: str = "scheduled"  # scheduled, completed, missed
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-# ==================== EMAIL & OTP HELPERS ====================
+# ==================== EMAIL VALIDATION ====================
 
-# Blocked personal email prefixes that may spoof .ac.uk
-BLOCKED_EMAIL_PREFIXES = [
-    'outlook', 'gmail', 'yahoo', 'hotmail', 'live', 'msn',
-    'aol', 'icloud', 'protonmail', 'zoho', 'mail', 'yandex',
-    'tutanota', 'fastmail', 'gmx', 'inbox', 'me',
-]
-
-def validate_university_email(email: str) -> tuple[bool, str]:
-    """Validate email is a legitimate university email, not a spoofed personal one."""
+def validate_email_format(email: str) -> tuple[bool, str]:
+    """Validate email is a properly formatted RFC-compliant address."""
     email = email.strip().lower()
-
-    # Must end with .ac.uk or .edu
-    allowed_suffixes = ('.ac.uk', '.edu')
-    if not any(email.endswith(s) for s in allowed_suffixes):
-        return False, "Please use your University email (.ac.uk or .edu) to ensure community safety."
-
-    # Extract domain part
-    domain = email.split('@')[1] if '@' in email else ''
-
-    # Block personal email providers that spoof .ac.uk
-    domain_lower = domain.lower()
-    for prefix in BLOCKED_EMAIL_PREFIXES:
-        if domain_lower.startswith(prefix + '.') or domain_lower.startswith(prefix + '@'):
-            return False, f"Personal email domains like {domain} are not accepted. Please use your official university email."
-        # Also block if the prefix appears as a subdomain
-        if f".{prefix}." in domain_lower or domain_lower == f"{prefix}.ac.uk" or domain_lower == f"{prefix}.edu":
-            return False, f"Personal email domains like {domain} are not accepted. Please use your official university email."
-
+    if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+        return False, "Please enter a valid email address."
     return True, ""
 
 
@@ -460,8 +437,8 @@ async def register(request: Request):
 
     # Admin bypass — skip domain validation for admin email
     if email != ADMIN_EMAIL.lower():
-        # Tightened domain validation
-        is_valid, error_msg = validate_university_email(email)
+        # Validate email format (RFC-compliant)
+        is_valid, error_msg = validate_email_format(email)
         if not is_valid:
             raise HTTPException(status_code=400, detail=error_msg)
 
