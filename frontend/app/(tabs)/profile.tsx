@@ -64,11 +64,22 @@ export default function ProfileScreen() {
       {
         text: 'Logout',
         style: 'destructive',
-        onPress: async () => {
-          await logout();
-          // Hard redirect — on web: full page reload ensures clean state
-          hardNavigateToLanding();
-          router.replace('/');
+        onPress: () => {
+          // Fire-and-forget backend call
+          if (token) {
+            fetch(`${BACKEND_URL}/api/auth/logout`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` },
+            }).catch(() => {});
+          }
+          // Clear all storage synchronously, then hard redirect
+          if (typeof window !== 'undefined') {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/';
+          } else {
+            logout().then(() => router.replace('/'));
+          }
         },
       },
     ]);
@@ -111,17 +122,22 @@ export default function ProfileScreen() {
       });
 
       if (response.ok || response.status === 200) {
-        await logout();
-        // Hard redirect — on web: full page reload ensures clean state
-        hardNavigateToLanding();
-        router.replace('/');
+        // Clear all storage synchronously, then hard redirect
+        if (typeof window !== 'undefined') {
+          localStorage.clear();
+          sessionStorage.clear();
+          window.location.href = '/';
+        } else {
+          await logout();
+          router.replace('/');
+        }
       } else {
         const data = await response.json();
         crossAlert('Error', data.detail || 'Failed to delete account');
+        setDeleting(false);
       }
     } catch (error) {
       crossAlert('Error', 'Network error. Please try again.');
-    } finally {
       setDeleting(false);
     }
   };
