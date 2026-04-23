@@ -59,6 +59,7 @@ export default function ProfileScreen() {
         style: 'destructive',
         onPress: async () => {
           await logout();
+          crossAlert('Logged Out', 'You have been logged out successfully.');
           router.replace('/');
         },
       },
@@ -103,13 +104,14 @@ export default function ProfileScreen() {
 
       if (response.ok) {
         await logout();
-        router.replace('/welcome');
+        crossAlert('Account Deleted', 'Your account has been permanently deleted.');
+        router.replace('/');
       } else {
         const data = await response.json();
-        Alert.alert('Error', data.detail || 'Failed to delete account');
+        crossAlert('Error', data.detail || 'Failed to delete account');
       }
     } catch (error) {
-      Alert.alert('Error', 'Network error. Please try again.');
+      crossAlert('Error', 'Network error. Please try again.');
     } finally {
       setDeleting(false);
     }
