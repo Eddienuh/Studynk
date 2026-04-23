@@ -88,19 +88,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    // 1. Call backend logout (fire-and-forget)
     try {
       if (token) {
-        await fetch(`${BACKEND_URL}/api/auth/logout`, {
+        fetch(`${BACKEND_URL}/api/auth/logout`, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
+          headers: { 'Authorization': `Bearer ${token}` },
+        }).catch(() => {});
       }
     } catch (error) {
-      console.log('Logout error:', error);
+      console.log('Logout API error:', error);
     }
+
+    // 2. Clear ALL local storage
     await AsyncStorage.removeItem(TOKEN_KEY);
+
+    // 3. Also clear web localStorage/sessionStorage if on web
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem(TOKEN_KEY);
+      window.localStorage.clear();
+    }
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      window.sessionStorage.clear();
+    }
+
+    // 4. Clear global state immediately
     setToken(null);
     setUser(null);
   };

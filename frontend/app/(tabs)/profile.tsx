@@ -59,7 +59,6 @@ export default function ProfileScreen() {
         style: 'destructive',
         onPress: async () => {
           await logout();
-          crossAlert('Logged Out', 'You have been logged out successfully.');
           router.replace('/');
         },
       },
@@ -102,9 +101,9 @@ export default function ProfileScreen() {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
-      if (response.ok) {
+      if (response.ok || response.status === 200) {
+        // Clear auth state and navigate immediately
         await logout();
-        crossAlert('Account Deleted', 'Your account has been permanently deleted.');
         router.replace('/');
       } else {
         const data = await response.json();
