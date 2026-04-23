@@ -21,6 +21,13 @@ import { crossAlert, crossActionSheet } from '../../utils/crossAlert';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
+/** Hard reset to landing — on web: full reload clears all React state */
+const hardNavigateToLanding = () => {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    window.location.href = '/';
+  }
+};
+
 export default function ProfileScreen() {
   const { user, logout, token, refreshUser } = useAuth();
   const { theme, isDark, toggleTheme } = useTheme();
@@ -59,6 +66,8 @@ export default function ProfileScreen() {
         style: 'destructive',
         onPress: async () => {
           await logout();
+          // Hard redirect — on web: full page reload ensures clean state
+          hardNavigateToLanding();
           router.replace('/');
         },
       },
@@ -102,8 +111,9 @@ export default function ProfileScreen() {
       });
 
       if (response.ok || response.status === 200) {
-        // Clear auth state and navigate immediately
         await logout();
+        // Hard redirect — on web: full page reload ensures clean state
+        hardNavigateToLanding();
         router.replace('/');
       } else {
         const data = await response.json();
