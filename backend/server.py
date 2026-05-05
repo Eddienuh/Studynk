@@ -572,6 +572,67 @@ async def resend_otp(request: Request):
 
     return {"message": "Verification code sent!", "otp_sent": True}
 
+
+@api_router.post("/auth/forgot-password")
+async def forgot_password(request: Request):
+    """Send a password reset OTP to the user's email"""
+    body = await request.json()
+    email = body.get("email", "").strip().lower()
+
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+
+    user_doc = await db.users.find_one({"email": email})
+    if not user_doc:
+        # Don't reveal if email exists or not (security)
+        return {"message": "If an account exists with this email, a reset code has been sent.", "otp_sent": False}
+
+    # Generate and send OTP
+    otp = generate_otp()
+    await store_otp(user_doc["user_id"], email, otp)
+    email_sent = await send_otp_email(email, otp, user_doc.get("name", "Student"))
+
+    return {
+        "message": "If an account exists with this email, a reset code has been sent.",
+        "otp_sent": email_sent,
+        "user_id": user_doc["user_id"],
+    }
+
+
+@api_router.post("/auth/reset-password")
+async def reset_password(request: Request):
+    """Reset password using OTP code"""
+    body = await request.json()
+    email = body.get("email", "").strip().lower()
+    code = body.get("code", "")
+    new_password = body.get("new_password", "")
+
+    if not email or not code or not new_password:
+        raise HTTPException(status_code=400, detail="Email, code, and new password are required")
+
+    if len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+
+    user_doc = await db.users.find_one({"email": email})
+    if not user_doc:
+        raise HTTPException(status_code=400, detail="Invalid email or code")
+
+    # Verify OTP
+    success, message = await verify_otp(user_doc["user_id"], code)
+    if not success:
+        raise HTTPException(status_code=400, detail=message)
+
+    # Update password
+    hashed_pw = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    await db.users.update_one(
+        {"user_id": user_doc["user_id"]},
+        {"$set": {"password_hash": hashed_pw}}
+    )
+
+    return {"message": "Password reset successfully. You can now log in with your new password."}
+
+
+
 @api_router.post("/auth/login")
 async def login(request: Request):
     """Login with email and password"""

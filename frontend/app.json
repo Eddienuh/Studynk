@@ -55,7 +55,8 @@
           "cameraPermission": "Take a profile photo for your account"
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
