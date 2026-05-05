@@ -109,7 +109,7 @@ export default function LoginScreen() {
     }
 
     const emailLower = email.trim().toLowerCase();
-    const isAdmin = emailLower === 'admin@studynk.com';
+    const isAdmin = emailLower === 'admin@studynk.com' || emailLower === 'admin@studynk.co.uk';
     if (isAdmin) {
       console.log('[ADMIN] Admin email detected on login — skipping all domain checks');
     }
@@ -220,6 +220,10 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
+            <TouchableOpacity onPress={() => router.push('/forgot-password')} style={styles.forgotBtn}>
+              <Text style={styles.forgotText}>Forgot Password?</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={[styles.loginButton, loading && styles.loginButtonDisabled]}
               onPress={handleLogin}
@@ -230,10 +234,6 @@ export default function LoginScreen() {
               ) : (
                 <Text style={styles.loginButtonText}>Sign In</Text>
               )}
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => router.push('/forgot-password')} style={styles.forgotBtn}>
-              <Text style={styles.forgotText}>Forgot Password?</Text>
             </TouchableOpacity>
           </View>
 
@@ -424,12 +424,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   forgotBtn: {
-    alignSelf: 'center',
-    marginTop: 16,
+    alignSelf: 'flex-end',
+    marginTop: 10,
+    marginBottom: 8,
     paddingVertical: 8,
+    paddingHorizontal: 4,
   },
   forgotText: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#0EA5E9',
     fontWeight: '600',
   },
